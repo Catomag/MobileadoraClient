@@ -1,0 +1,27 @@
+<html>
+	<head>
+		<title>Mobile connector client!</title>
+		<script>
+			var websocket;
+			function connect_to_server(ip_address, port) {
+				websocket = WebSocket("ws://" + ip_address + ":" + port);
+
+				websocket.onopen = (evt) => {
+					confirm("Socket connected!");
+				}
+				websocket.onclose = (evt) => {
+					confirm("Socket closed =(");
+				}
+				websocket.onmessage = (evt) => {
+					confirm("Received message: " + evt.data);
+				}
+			}
+		</script>
+	</head>
+	
+	<body>
+		<h1>hello, welcome to ma webzonne</h1>
+		<span style="width: 300px; height: 300px; display: inline-block; background-color:green;" onclick="connect_to_server('192.168.0.25', 8000);"></span>
+
+	</body>
+</html>
