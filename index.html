@@ -17,17 +17,13 @@
 			}
 		</style>
 
-		<script src="serviceworker.js"></script>
 		<script> 
 			// Code from: https://www.geeksforgeeks.org/making-a-simple-pwa-under-5-minutes/
-
-			window.addEventListener('load', () => { 
-				registerSW(); 
-			}); 
 
 			// Register the Service Worker 
 			async function registerSW() { 
 				if('serviceWorker' in navigator) { 
+					console.log('ran 2');
 					try { 
 						await navigator 
 						.serviceWorker 
@@ -38,11 +34,12 @@
 					} 
 				} 
 			} 
-		 </script>
+		</script>
+		<script src="serviceworker.js"></script>
 		<script src="main.js"></script>
 	</head>
 	
-	<body>
+	<body onload="registerSW()">
 		<h1>hello, welcome to ma webzonne ver 3</h1>
 		<span style="width: 300px; height: 300px; display: inline-block; background-color:green;" onclick="connect_to_server('192.168.0.25', 8000);"></span>
 		<span style="width: 300px; height: 300px; display: inline-block; background-color:orange;" onclick="send_message();"></span>

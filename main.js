@@ -2,11 +2,14 @@ var websocket;
 
 // Library stuff
 
+
+
 function connect_to_server(ip_address, port) {
 //	document.window.onbeforeunload = () => {
 //		websocket.close();
 //	}
 	websocket = new WebSocket("ws://" + ip_address + ":" + port);
+
 
 	// As soon as server connects
 	websocket.onopen = () => {
