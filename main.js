@@ -16,7 +16,7 @@ function connect_to_server(ip_address, port) {
 		console.log("Socket connected!");
 
 		// send message to server
-		websocket.send("Iphone 6s\0");
+		websocket.send("Iphone 6s");
 	};
 
 	websocket.onclose = () => {
@@ -32,8 +32,10 @@ function connect_to_server(ip_address, port) {
 	};
 }
 
+let loops = 0;
 function send_message() {
-	websocket.send("Hello my name is jeff basos");
+	websocket.send("Message: " + loops);
+	loops++;
 }
 
 
