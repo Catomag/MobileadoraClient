@@ -4,6 +4,7 @@
 		<meta name="Mobile Connector" content="#aa7700"> 
 		<meta name="theme-color" content="black">
 		<link rel="manifest" href="manifest.json">
+		<link rel="stylesheet" href="styles.css">
 		<title>Mobile connector client!</title>
 
 		<style>
@@ -34,15 +35,21 @@
 					} 
 				} 
 			} 
+
 		</script>
 		<script src="serviceworker.js"></script>
 		<script src="main.js"></script>
 	</head>
 	
-	<body onload="registerSW()">
-		<h1>hello, welcome to ma webzonne ver 4!</h1>
-		<span style="width: 300px; height: 300px; display: inline-block; background-color:green;" onclick="connect_to_server('192.168.0.25', 8000);"></span>
+	<body onload="registerSW();" scroll="no" style="overflow: hidden; position: fixed;">
+		<h1>hello, welcome to ma webzonne ver 6!</h1>
+		<!--<span style="width: 300px; height: 300px; display: inline-block; background-color:green;" onclick="connect_to_server('192.168.0.25', 8000);"></span>
 		<span style="width: 300px; height: 300px; display: inline-block; background-color:orange;" onclick="send_message();"></span>
 		<span style="width: 300px; height: 300px; display: inline-block; background-color:red;" onclick="websocket.close();"></span>
+		-->
+
+		<div class="joystick">
+			<div class="joystick-handle" onload="joystickStopDragging(event)" ontouchstart="joystickStartDragging(event)" onmousedown="joystickStartDragging(event)"></div>
+		</div>
 	</body>
 </html>
