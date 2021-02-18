@@ -3,6 +3,10 @@ var websocket;
 
 // Library stuff
 
+function floatToShort(number) {
+	return Math.ceil((number * 0xFFFF) / 2);
+}
+
 const inputs = Array();
 
 class InputType {
@@ -56,11 +60,9 @@ function inputSend(id, index, data) {
 
 
 function joystickDrag(evt) {
-	//confirm('evt ' + evt.type);
-	//evt.preventDefault();
-	
 	let handle = evt.source || evt.srcElement;
 	let base = handle.parentElement;
+
 
 	let mouse_x, mouse_y;
 	if(evt.type == 'touchmove') {
@@ -72,10 +74,6 @@ function joystickDrag(evt) {
 		mouse_y = evt.y;
 	}
 
-	let x, y;
-	x = base.offsetLeft + handle.offsetLeft;
-	y = base.offsetTop + handle.offsetTop;
-
 	let w, h;
 	w = handle.offsetWidth;
 	h = handle.offsetHeight;
@@ -84,38 +82,49 @@ function joystickDrag(evt) {
 	center_x = base.offsetLeft + (base.offsetWidth / 2) - (w / 2);
 	center_y = base.offsetTop  + (base.offsetHeight/ 2) - (h / 2);
 
-	let diff_x, diff_y;
-	diff_x = (x - mouse_x) - center_x;
-	diff_y = (y - mouse_y) - center_y;
+	let dir_x, dir_y;
+	dir_x = mouse_x - center_x - (w / 2);
+	dir_y = mouse_y - center_y - (h / 2);
 
-	let dist =  (mouse_x - center_x) * (mouse_x - center_x) +
-				(mouse_x - center_y) * (mouse_x - center_y);
+	let angle = Math.atan2(dir_x, dir_y);
 
-	console.log("mouse: " + mouse_x + "," + mouse_y);
+
+	let dist = dir_x * dir_x + dir_y * dir_y;
+	let max_dist = ((base.offsetWidth / 2) * (base.offsetWidth / 2) + (base.offsetHeight / 2) * (base.offsetHeight / 2)) / 2;
+
+	let mag = Math.sqrt(Math.min(max_dist, dist));
+
+	let yaw, pitch;
+	yaw = Math.sin(angle);
+    pitch = Math.cos(angle);
 
 	let new_x, new_y;
-	new_x = (mouse_x - (w / 2));
-	new_y = (mouse_y - (h / 2));
+	new_x = yaw * mag;
+	new_y = pitch * mag;
+
+	console.log("center: " + new_x + ", " + new_y);
+	console.log("mag: " + mag + "\n\n\n\n");
+	
+	handle.style.position = "relative";
+	handle.style.left = new_x + "px";
+	handle.style.top  = new_y + "px";
 
 
-	//if(dist < (base.offsetWidth / 2) * (base.offsetWidth / 2) - (w / 2) * (w / 2)) {
-		handle.style.position = "absolute";
-		handle.style.left = new_x + "px";
-		handle.style.top  = new_y + "px";
-//	}
-//	else {
-//	}
-
-	let yaw = ((new_x - center_x) / base.offsetWidth) * 2;
-	let pitch = ((new_y - center_y) / base.offsetHeight) * 2;
-	console.log("joystick: " + ((new_x - center_x) / base.offsetWidth) * 2  + ", " + ((new_y - center_y) / base.offsetHeight) * -2);
-
-	let buf = new int8Array(4);
+	// send movement info to websocket server
+	let buf = new Uint8Array(2 + 2 + 2);
 
 	buf[0] = 4; // input type
 	buf[1] = 0; // input index (hard coded)
-	buf[2] = Math.round(yaw * 128);
-	buf[3] = Math.round(pitch * 128);
+
+	let yaw_binary = floatToShort(yaw);
+//	console.log("uint yaw: " + yaw_binary);
+	buf[2] = (yaw_binary >> 8) & 255;
+	buf[3] = (yaw_binary >> 0) & 255;
+
+	let pitch_binary = floatToShort(pitch);
+//	console.log("uint pitch: " + pitch_binary);
+	buf[4] = (pitch_binary >> 8) & 255;
+	buf[5] = (pitch_binary >> 0) & 255;
 
 	websocket.send(buf);
 	evt.preventDefault();
@@ -123,14 +132,9 @@ function joystickDrag(evt) {
 
 
 function joystickStopDragging(evt) {
-	console.log("this ran");
 	//evt.preventDefault();
 	let handle = evt.source || evt.srcElement;
 	let base = handle.parentElement;
-
-	let x, y;
-	x = base.offsetLeft + handle.offsetLeft;
-	y = base.offsetTop + handle.offsetTop;
 
 	let w, h;
 	w = handle.offsetWidth;
@@ -161,6 +165,7 @@ function joystickStopDragging(evt) {
 
 function joystickStartDragging(evt) {
 	let source = evt.target || evt.srcElement;
+
 	source.onmouseup = joystickStopDragging;
 	source.onmousemove = joystickDrag;
 
@@ -182,7 +187,7 @@ function connect_to_server(ip_address, port) {
 		console.log("Socket connected!");
 
 		// send message to server
-		websocket.send("Connected!");
+		//websocket.send("Connected!");
 	};
 
 	websocket.onclose = () => {
@@ -193,7 +198,6 @@ function connect_to_server(ip_address, port) {
 	websocket.onmessage = (evt) => {
 		evt.data;
 		confirm("Received message: " + evt.data);
-		confirm("Headers: " + evt.data.headers);
 		console.log("Received message: " + evt.data);
 	};
 }
@@ -201,7 +205,7 @@ function connect_to_server(ip_address, port) {
 
 let loops = 0;
 function send_message() {
-	websocket.send("Message: " + loops);
+	//websocket.send("Message: " + loops);
 	loops++;
 }
 

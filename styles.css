@@ -1,6 +1,6 @@
 .joystick {
-	width: 300px;
-	height: 300px;
+	width: 200px;
+	height: 200px;
 	display: inline-block;
 	background-color: grey;
 	border-radius: 600px;
@@ -9,8 +9,8 @@
 }
 
 .joystick-handle {
-	width: 200px;
-	height: 200px;
+	width: 150px;
+	height: 150px;
 	border-radius: 100px;
 	background-color: purple;
 }
