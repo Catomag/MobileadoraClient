@@ -6,48 +6,47 @@ var websocket;
 function floatToShort(number) {
 	return Math.ceil((number * 0xFFFF) / 2);
 }
-
-const inputs = Array();
-
-class InputType {
-	constructor(html) {
-		this.id;
-		this.index = inputs.length;
-		this.data;
-
-		this.element = document.createElement('template');
-		this.element.innerHTML = html;
-		document.getElementsByTagName("body")[0].append(elem);
-
-		//inputs.append(this);
-	}
-
-	getRelativeIndex() {
-	}
-}
-
-var inputTypes = {
-	"text" : new InputType(""),
-	"button" : new InputType(""),
-	"submit" : new InputType(""),
-	"joystick" : new InputType(""),
-};
-
+//
+//const inputs = Array();
+//
+//class InputType {
+//	constructor(html) {
+//		this.id;
+//		this.index = inputs.length;
+//		this.data;
+//
+//		this.element = document.createElement('template');
+//		this.element.innerHTML = html;
+//		//document.getElementsByTagName("body")[0].append(elem);
+//
+//		//inputs.append(this);
+//	}
+//
+//	getRelativeIndex() {
+//	}
+//}
+//
+//var inputTypes = {
+//	"text" : new InputType(""),
+//	"button" : new InputType(""),
+//	"submit" : new InputType(""),
+//	"joystick" : new InputType(""),
+//};
+//
+//
+//
+//function inputSend(id, index, data) {
+//	websocket.send();
+//}
+//
+//class Joystick extends Input {
+//	constructor() {
+//		super();
+//	}
+//}
 
 
 function inputSend(id, index, data) {
-	websocket.send();
-}
-
-class Joystick extends Input {
-	constructor() {
-		super();
-	}
-}
-
-
-function inputSend(id, index, data) {
-
 //	let count;
 //	for(let i = 0; i < inputs.length; i++) {
 //		let data = new Uint8Array(+ data.length);
@@ -90,7 +89,7 @@ function joystickDrag(evt) {
 
 
 	let dist = dir_x * dir_x + dir_y * dir_y;
-	let max_dist = ((base.offsetWidth / 2) * (base.offsetWidth / 2) + (base.offsetHeight / 2) * (base.offsetHeight / 2)) / 2;
+	let max_dist = ((base.offsetWidth / 2) * (base.offsetWidth / 2) + (base.offsetHeight / 2) * (base.offsetHeight / 2)) - ((w / 2) * (w / 2) + (h / 2) * (h / 2));
 
 	let mag = Math.sqrt(Math.min(max_dist, dist));
 
@@ -105,9 +104,9 @@ function joystickDrag(evt) {
 	console.log("center: " + new_x + ", " + new_y);
 	console.log("mag: " + mag + "\n\n\n\n");
 	
-	handle.style.position = "relative";
-	handle.style.left = new_x + "px";
-	handle.style.top  = new_y + "px";
+	handle.style.position = "absolute";
+	handle.style.left = (center_x + new_x) + "px";
+	handle.style.top  = (center_y + new_y) + "px";
 
 
 	// send movement info to websocket server
@@ -121,7 +120,7 @@ function joystickDrag(evt) {
 	buf[2] = (yaw_binary >> 8) & 255;
 	buf[3] = (yaw_binary >> 0) & 255;
 
-	let pitch_binary = floatToShort(pitch);
+	let pitch_binary = -floatToShort(pitch);
 //	console.log("uint pitch: " + pitch_binary);
 	buf[4] = (pitch_binary >> 8) & 255;
 	buf[5] = (pitch_binary >> 0) & 255;
@@ -140,13 +139,12 @@ function joystickStopDragging(evt) {
 	w = handle.offsetWidth;
 	h = handle.offsetHeight;
 
-	let center_x, center_y;
-	center_x = base.offsetLeft + (base.offsetWidth / 2) - (w / 2);
-	center_y = base.offsetTop  + (base.offsetHeight/ 2) - (h / 2);
+	let border_width = parseInt(getComputedStyle(document.documentElement).getPropertyValue("--thicc").replace('px',''));
+	console.log(border_width);
 
-	handle.style.position = "absolute";
-	handle.style.left = center_x + "px";
-	handle.style.top  = center_y + "px";
+	handle.style.position = "relative";
+	handle.style.left = (base.offsetWidth/2 - w/2 - border_width) + "px";
+	handle.style.top  = (base.offsetHeight/2 - h/2 - border_width) + "px";
 
 	handle.onmouseup = null;
 	handle.onmousemove = null;
@@ -154,12 +152,15 @@ function joystickStopDragging(evt) {
 	handle.ontouchcancel = null;
 	handle.ontouchmove = null;
 
-	let buf = new Uint8Array(4);
+	let buf = new Uint8Array(6);
 
 	buf[0] = 4; // input type
 	buf[1] = 0; // input index (hard coded)
 	buf[2] = 0;
 	buf[3] = 0;
+	buf[4] = 0;
+	buf[5] = 0;
+
 	websocket.send(buf);
 }
 

@@ -1,16 +1,40 @@
+:root {
+	--thicc: 4px;
+}
+
+html {
+	width: 100%;
+	height: 100%;
+	overflow: hidden;
+	position: fixed;
+	scroll-behavior: none;
+}
+
+body {
+	padding: 10px;
+}
+
 .joystick {
-	width: 200px;
-	height: 200px;
-	display: inline-block;
-	background-color: grey;
+	width: 150px;
+	height: 150px;
+	background-color: white;
+	border-color: black;
+	border-width: var(thicc);
+	border-style: solid;
 	border-radius: 600px;
-	left: 50%;
-	top: 50%;
+	margin: 0 auto;
 }
 
 .joystick-handle {
-	width: 150px;
-	height: 150px;
+	width: 100px;
+	height: 100px;
 	border-radius: 100px;
-	background-color: purple;
+
+	position: relative;
+	top: calc(50% - 50px - var(--thicc));
+	left: calc(50% - 50px - var(--thicc));
+	background-color: red;
+	border-color: black;
+	border-width: var(--thicc);
+	border-style: solid;
 }

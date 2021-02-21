@@ -3,6 +3,11 @@
 		<meta name="viewport" content="width=device-width, height=device-height, initial-scale=1.0, maximum-scale=1.0, user-scalable=0">
 		<meta name="Mobile Connector" content="#aa7700"> 
 		<meta name="theme-color" content="black">
+
+		<meta name="apple-mobile-web-app-title" content="MobileConnector">
+		<meta name="apple-mobile-web-app-capable" content="yes">
+		<meta name="apple-mobile-web-app-status-bar-style" content="black">
+
 		<link rel="manifest" href="manifest.json">
 		<link rel="stylesheet" href="styles.css">
 		<title>Mobile connector client!</title>
@@ -23,17 +28,16 @@
 
 			// Register the Service Worker 
 			async function registerSW() { 
-				if('serviceWorker' in navigator) { 
-					console.log('ran 2');
-					try { 
-						await navigator 
-						.serviceWorker 
-						.register('serviceworker.js'); 
-					} 
-					catch (e) { 
-						console.log('SW registration failed'); 
-					} 
-				} 
+//				if('serviceWorker' in navigator) { 
+//					try { 
+//						await navigator 
+//						.serviceWorker 
+//						.register('serviceworker.js'); 
+//					} 
+//					catch (e) { 
+//						console.log('SW registration failed'); 
+//					} 
+//				} 
 			} 
 
 		</script>
@@ -43,16 +47,17 @@
 	
 	<!--<body onload="registerSW();" scroll="no" style="overflow: hidden; position: fixed;">-->
 	<body onload="registerSW();">
-		<h1>hello, welcome to ma webzonne ver 8!</h1>
-		<!--<span style="width: 300px; height: 300px; display: inline-block; background-color:green;" onclick="connect_to_server('192.168.0.25', 8000);"></span>
-		<span style="width: 300px; height: 300px; display: inline-block; background-color:orange;" onclick="send_message();"></span>
-		<span style="width: 300px; height: 300px; display: inline-block; background-color:red;" onclick="websocket.close();"></span>
-		-->
+		<h1>Webzone 9th edition</h1>
 
-		<center>
-		<div class="joystick">
-			<div class="joystick-handle" onload="joystickStopDragging(event)" ontouchstart="joystickStartDragging(event)" onmousedown="joystickStartDragging(event)"></div>
+		<span style="width: 30px; height: 30px; display: inline-block; background-color:green;" onclick="connect_to_server('192.168.0.25', 8000);"></span>
+		<span style="width: 30px; height: 30px; display: inline-block; background-color:orange;" onclick="send_message();"></span>
+		<span style="width: 30px; height: 30px; display: inline-block; background-color:red;" onclick="websocket.close();"></span>
+
+		<br></br>
+
+		<div class="joystick" onload="confirm('this ran')">
+			<div class="joystick-handle" ontouchstart="joystickStartDragging(event);" onmousedown="joystickStartDragging(event);"></div>
 		</div>
-		</center>
+
 	</body>
 </html>
