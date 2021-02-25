@@ -1,6 +1,7 @@
 <html scroll="no" style="overflow: hidden; position: fixed;">
 	<head>
-		<meta name="viewport" content="width=device-width, height=device-height, initial-scale=1.0, maximum-scale=1.0, user-scalable=0">
+		<meta name="viewport" content="width=device-width, height=device-height, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+		<meta name="HandheldFriendly" content="true">
 		<meta name="Mobile Connector" content="#aa7700"> 
 		<meta name="theme-color" content="black">
 
@@ -28,6 +29,29 @@
 
 			// Register the Service Worker 
 			async function registerSW() { 
+				// hack to remove gestures, taken from: https://stackoverflow.com/questions/11689353/disable-pinch-zoom-on-mobile-web
+				document.addEventListener('gesturestart', function(e) {
+					e.preventDefault();
+					// special hack to prevent zoom-to-tabs gesture in safari
+					document.body.style.zoom = 0.99;
+				});
+
+				document.addEventListener('gesturechange', function(e) {
+					e.preventDefault();
+					// special hack to prevent zoom-to-tabs gesture in safari
+					document.body.style.zoom = 0.99;
+				});
+
+				document.addEventListener('gestureend', function(e) {
+					e.preventDefault();
+					// special hack to prevent zoom-to-tabs gesture in safari
+					document.body.style.zoom = 0.99;
+				});
+
+				var j1 = new Joystick();
+				var j2 = new Joystick();
+				j2.base.style.float = "right";
+
 //				if('serviceWorker' in navigator) { 
 //					try { 
 //						await navigator 
@@ -47,17 +71,17 @@
 	
 	<!--<body onload="registerSW();" scroll="no" style="overflow: hidden; position: fixed;">-->
 	<body onload="registerSW();">
-		<h1>Webzone 9th edition</h1>
+		<h1>Webzone v2: Electric Bugaloo</h1>
 
 		<span style="width: 30px; height: 30px; display: inline-block; background-color:green;" onclick="connect_to_server('192.168.0.25', 8000);"></span>
 		<span style="width: 30px; height: 30px; display: inline-block; background-color:orange;" onclick="send_message();"></span>
 		<span style="width: 30px; height: 30px; display: inline-block; background-color:red;" onclick="websocket.close();"></span>
+		<br>
+		<br>
+		<br>
 
-		<br></br>
-
-		<div class="joystick" onload="confirm('this ran')">
-			<div class="joystick-handle" ontouchstart="joystickStartDragging(event);" onmousedown="joystickStartDragging(event);"></div>
-		</div>
-
+		<!--<div class="button" onclick="">
+			<span class="button-text">A</span>
+		</div> -->
 	</body>
 </html>

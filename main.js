@@ -57,123 +57,137 @@ function inputSend(id, index, data) {
 //	inputs.clear();
 }
 
+let joysticks = 0;
+class Joystick {
+	constructor() {
+		this.source = "<div class=\"joystick\"><div class=\"joystick-handle\"></div></div>";
 
-function joystickDrag(evt) {
-	let handle = evt.source || evt.srcElement;
-	let base = handle.parentElement;
+		let div = document.createElement('div');
+		div.innerHTML = this.source.trim();
+
+		this.base = document.getElementsByTagName('body')[0].insertAdjacentElement('beforeend', div.firstChild);
+		this.handle = this.base.firstChild;
+
+		this.w = this.handle.offsetWidth;
+		this.h = this.handle.offsetHeight;
+
+		this.pitch = 0;
+		this.yaw = 0;
 
 
-	let mouse_x, mouse_y;
-	if(evt.type == 'touchmove') {
-		mouse_x = evt.changedTouches[0].pageX;
-		mouse_y = evt.changedTouches[0].pageY;
+		this.handle.addEventListener('touchstart', () => {
+			this.handle.addEventListener('mouseup', (e) => { this.onStop(this) }, false);
+			this.handle.addEventListener('mousemove', (e) => { this.onDrag(this, e) }, false);
+			this.handle.addEventListener('touchend', (e) => { this.onStop(this) }, false);
+			this.handle.addEventListener('touchmove', (e) => { this.onDrag(this, e) }, false);
+		}, false);
+
+		this.handle.addEventListener('mousedown', () => {
+			this.handle.addEventListener('mouseup', (e) => { this.onStop(this) }, false);
+			this.handle.addEventListener('mousemove', (e) => { this.onDrag(this, e) }, false);
+			this.handle.addEventListener('touchend', (e) => { this.onStop(this) }, false);
+			this.handle.addEventListener('touchmove', (e) => { this.onDrag(this, e) }, false);
+		});
+
+		this.id = joysticks;
+		joysticks++;
 	}
-	else {
-		mouse_x = evt.x;
-		mouse_y = evt.y;
+
+	send(self) {
 	}
 
-	let w, h;
-	w = handle.offsetWidth;
-	h = handle.offsetHeight;
+	onDrag(self, evt) {
+		let handle = self.handle;
+		let base = self.base;
+		let w = self.w;
+		let h = self.h;
 
-	let center_x, center_y;
-	center_x = base.offsetLeft + (base.offsetWidth / 2) - (w / 2);
-	center_y = base.offsetTop  + (base.offsetHeight/ 2) - (h / 2);
+		let mouse_x, mouse_y;
+		if(evt.type == 'touchmove') {
+			mouse_x = evt.changedTouches[0].pageX;
+			mouse_y = evt.changedTouches[0].pageY;
+		}
+		else {
+			mouse_x = evt.x;
+			mouse_y = evt.y;
+		}
 
-	let dir_x, dir_y;
-	dir_x = mouse_x - center_x - (w / 2);
-	dir_y = mouse_y - center_y - (h / 2);
+		let center_x, center_y;
+		center_x = base.offsetLeft + (base.offsetWidth / 2) - (w / 2);
+		center_y = base.offsetTop  + (base.offsetHeight/ 2) - (h / 2);
 
-	let angle = Math.atan2(dir_x, dir_y);
+		let dir_x, dir_y;
+		dir_x = mouse_x - center_x - (w / 2);
+		dir_y = mouse_y - center_y - (h / 2);
 
+		let angle = Math.atan2(dir_x, dir_y);
 
-	let dist = dir_x * dir_x + dir_y * dir_y;
-	let max_dist = ((base.offsetWidth / 2) * (base.offsetWidth / 2) + (base.offsetHeight / 2) * (base.offsetHeight / 2)) - ((w / 2) * (w / 2) + (h / 2) * (h / 2));
+		let dist = dir_x * dir_x + dir_y * dir_y;
+		let max_dist = ((base.offsetWidth / 2) * (base.offsetWidth / 2) + (base.offsetHeight / 2) * (base.offsetHeight / 2)) - ((w / 2) * (w / 2) + (h / 2) * (h / 2));
 
-	let mag = Math.sqrt(Math.min(max_dist, dist));
+		let mag = Math.sqrt(Math.min(max_dist, dist));
 
-	let yaw, pitch;
-	yaw = Math.sin(angle);
-    pitch = Math.cos(angle);
+		self.yaw = Math.sin(angle);
+		self.pitch = Math.cos(angle);
 
-	let new_x, new_y;
-	new_x = yaw * mag;
-	new_y = pitch * mag;
+		let new_x, new_y;
+		new_x = self.yaw * mag;
+		new_y = self.pitch * mag;
 
-	console.log("center: " + new_x + ", " + new_y);
-	console.log("mag: " + mag + "\n\n\n\n");
-	
-	handle.style.position = "absolute";
-	handle.style.left = (center_x + new_x) + "px";
-	handle.style.top  = (center_y + new_y) + "px";
+		handle.style.position = "absolute";
+		handle.style.left = (center_x + new_x) + "px";
+		handle.style.top  = (center_y + new_y) + "px";
 
+		// send movement info to websocket server
+		let buf = new Uint8Array(2 + 2 + 2);
 
-	// send movement info to websocket server
-	let buf = new Uint8Array(2 + 2 + 2);
+		buf[0] = 4; // input type
+		buf[1] = self.id; // input index (hard coded)
 
-	buf[0] = 4; // input type
-	buf[1] = 0; // input index (hard coded)
+		let yaw_binary = floatToShort(self.yaw);
+		buf[2] = (yaw_binary >> 8) & 255;
+		buf[3] = (yaw_binary >> 0) & 255;
 
-	let yaw_binary = floatToShort(yaw);
-//	console.log("uint yaw: " + yaw_binary);
-	buf[2] = (yaw_binary >> 8) & 255;
-	buf[3] = (yaw_binary >> 0) & 255;
+		let pitch_binary = -floatToShort(self.pitch);
+		buf[4] = (pitch_binary >> 8) & 255;
+		buf[5] = (pitch_binary >> 0) & 255;
 
-	let pitch_binary = -floatToShort(pitch);
-//	console.log("uint pitch: " + pitch_binary);
-	buf[4] = (pitch_binary >> 8) & 255;
-	buf[5] = (pitch_binary >> 0) & 255;
+		if(websocket != undefined) {
+			websocket.send(buf);
+		}
 
-	websocket.send(buf);
-	evt.preventDefault();
+		evt.preventDefault();
+	}
+
+	onStop(self) {
+		self.handle.style.position = "relative";
+		self.handle.style.left = (self.base.offsetWidth/2 - self.w/2) + "px";
+		self.handle.style.top  = (self.base.offsetHeight/2 - self.h/2) + "px";
+
+		self.pitch = 0;
+		self.yaw = 0;
+
+		self.handle.onmouseup = null;
+		self.handle.onmousemove = null;
+		self.handle.ontouchcancel = null;
+		self.handle.ontouchend = null;
+		self.handle.ontouchmove = null;
+
+		// send movement info to websocket server
+		let buf = new Uint8Array(2 + 2 + 2);
+
+		buf[0] = 4; // input type
+		buf[1] = self.id; // input index (hard coded)
+		buf[2] = 0;
+		buf[3] = 0;
+		buf[4] = 0;
+		buf[5] = 0;
+
+		if(websocket != undefined) {
+			websocket.send(buf);
+		}
+	}
 }
-
-
-function joystickStopDragging(evt) {
-	//evt.preventDefault();
-	let handle = evt.source || evt.srcElement;
-	let base = handle.parentElement;
-
-	let w, h;
-	w = handle.offsetWidth;
-	h = handle.offsetHeight;
-
-	let border_width = parseInt(getComputedStyle(document.documentElement).getPropertyValue("--thicc").replace('px',''));
-	console.log(border_width);
-
-	handle.style.position = "relative";
-	handle.style.left = (base.offsetWidth/2 - w/2 - border_width) + "px";
-	handle.style.top  = (base.offsetHeight/2 - h/2 - border_width) + "px";
-
-	handle.onmouseup = null;
-	handle.onmousemove = null;
-
-	handle.ontouchcancel = null;
-	handle.ontouchmove = null;
-
-	let buf = new Uint8Array(6);
-
-	buf[0] = 4; // input type
-	buf[1] = 0; // input index (hard coded)
-	buf[2] = 0;
-	buf[3] = 0;
-	buf[4] = 0;
-	buf[5] = 0;
-
-	websocket.send(buf);
-}
-
-function joystickStartDragging(evt) {
-	let source = evt.target || evt.srcElement;
-
-	source.onmouseup = joystickStopDragging;
-	source.onmousemove = joystickDrag;
-
-	source.addEventListener('touchend', joystickStopDragging, false);
-	source.addEventListener('touchmove', joystickDrag, false);
-}
-
 
 
 function connect_to_server(ip_address, port) {
@@ -198,7 +212,7 @@ function connect_to_server(ip_address, port) {
 
 	websocket.onmessage = (evt) => {
 		evt.data;
-		confirm("Received message: " + evt.data);
+		//confirm("Received message: " + evt.data);
 		console.log("Received message: " + evt.data);
 	};
 }
