@@ -57,7 +57,7 @@ function inputSend(id, index, data) {
 //	inputs.clear();
 }
 
-let joysticks = 0;
+var joystick_count = 0;
 class Joystick {
 	constructor() {
 		this.source = "<div class=\"joystick\"><div class=\"joystick-handle\"></div></div>";
@@ -83,17 +83,14 @@ class Joystick {
 		}, false);
 
 		this.handle.addEventListener('mousedown', () => {
-			this.handle.addEventListener('mouseup', (e) => { this.onStop(this) }, false);
-			this.handle.addEventListener('mousemove', (e) => { this.onDrag(this, e) }, false);
+			this.handle.onmouseup = (e) => { this.onStop(this); };
+			this.handle.onmousemove = (e) => { this.onDrag(this, e); };
 			this.handle.addEventListener('touchend', (e) => { this.onStop(this) }, false);
 			this.handle.addEventListener('touchmove', (e) => { this.onDrag(this, e) }, false);
 		});
 
-		this.id = joysticks;
-		joysticks++;
-	}
-
-	send(self) {
+		this.id = joystick_count;
+		joystick_count++;
 	}
 
 	onDrag(self, evt) {
@@ -152,9 +149,7 @@ class Joystick {
 		buf[4] = (pitch_binary >> 8) & 255;
 		buf[5] = (pitch_binary >> 0) & 255;
 
-		if(websocket != undefined) {
-			websocket.send(buf);
-		}
+		websocket.send(buf);
 
 		evt.preventDefault();
 	}
@@ -173,19 +168,53 @@ class Joystick {
 		self.handle.ontouchend = null;
 		self.handle.ontouchmove = null;
 
-		// send movement info to websocket server
 		let buf = new Uint8Array(2 + 2 + 2);
-
-		buf[0] = 4; // input type
-		buf[1] = self.id; // input index (hard coded)
+		buf[0] = 4;
+		buf[1] = self.id;
 		buf[2] = 0;
 		buf[3] = 0;
 		buf[4] = 0;
 		buf[5] = 0;
 
-		if(websocket != undefined) {
-			websocket.send(buf);
-		}
+		websocket.send(buf);
+	}
+}
+
+
+var button_count = 0;
+class Button {
+	constructor(char) {
+		this.source = "<div class=\"button\"><span class=\"button-text\">" + char + "</span></div>";
+
+		let div = document.createElement('div');
+		div.innerHTML = this.source.trim();
+
+		this.base = document.getElementsByTagName('body')[0].insertAdjacentElement('beforeend', div.firstChild);
+
+		this.base.addEventListener('touchstart', () => { this.onClick(this); }, false);
+		this.base.addEventListener('mousedown', () => { this.onClick(this); }, false);
+		this.base.addEventListener('touchend', () => { this.onRelease(this); }, false);
+		this.base.addEventListener('mouseup', () => { this.onRelease(this); }, false);
+
+		this.id = button_count;
+		button_count++;
+	}
+
+	onClick(self) {
+		console.log("this ran");
+		let buf = new Uint8Array(2 + 1);
+		buf[0] = 1;
+		buf[1] = self.id;
+		buf[2] = 1;
+		websocket.send(buf);
+	}
+
+	onRelease() {
+		let buf = new Uint8Array(2 + 1);
+		buf[0] = 1;
+		buf[1] = self.id;
+		buf[2] = 0;
+		websocket.send(buf);
 	}
 }
 
@@ -200,12 +229,14 @@ function connect_to_server(ip_address, port) {
 	// As soon as server connects
 	websocket.onopen = () => {
 		console.log("Socket connected!");
+		confirm('Connected to server!');
 
 		// send message to server
 		//websocket.send("Connected!");
 	};
 
 	websocket.onclose = () => {
+		confirm('Server closed =(');
 		//confirm("Socket closed =(");
 		console.log("Socket closed =(");
 	};

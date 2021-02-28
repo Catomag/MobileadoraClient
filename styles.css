@@ -1,4 +1,8 @@
 :root {
+	--highlight: #d40055;
+	--medium: #800033;
+	--dark: #00222b;
+	--background: #004455;
 }
 
 html {
@@ -7,12 +11,13 @@ html {
 	overflow: hidden;
 	position: fixed;
 	scroll-behavior: none;
-	background-color: #2A333F;
+	background-color: var(--background);
 }
 
 body {
 	padding-left: 50px;
 	padding-right: 50px;
+	padding-bottom: 20px;
 }
 
 input {
@@ -29,20 +34,20 @@ input {
 .joystick {
 	width: 140px;
 	height: 140px;
-	background-color: #939DA6;
+	background-color: var(--dark);
 	border-radius: 600px;
 	touch-action: manipulation;
 }
 
 .joystick-handle {
-	width: 110px;
-	height: 110px;
+	width: 100px;
+	height: 100px;
 	border-radius: 100px;
 
 	position: relative;
-	top: calc(50% - 55px);
-	left: calc(50% - 55px);
-	background-color: #BE3E35;
+	top: calc(50% - 50px);
+	left: calc(50% - 50px);
+	background-color: var(--highlight);
 	touch-action: manipulation;
 }
 
@@ -51,10 +56,15 @@ input {
 	height: 100px;
 	border-radius: 400px;
 
-	background-color:#B48EAD;
+	float: right;
+	background-color: var(--highlight);
 	position: relative;
 	text-align: center;
 	touch-action: manipulation;
+}
+
+.button:active {
+	background-color: var(--medium);
 }
 
 .button-text {

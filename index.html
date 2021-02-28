@@ -49,8 +49,10 @@
 				});
 
 				var j1 = new Joystick();
-				var j2 = new Joystick();
-				j2.base.style.float = "right";
+
+				var b1 = new Button("A");
+//				var j2 = new Joystick();
+//				j2.base.style.float = "right";
 
 //				if('serviceWorker' in navigator) { 
 //					try { 
@@ -71,17 +73,16 @@
 	
 	<!--<body onload="registerSW();" scroll="no" style="overflow: hidden; position: fixed;">-->
 	<body onload="registerSW();">
-		<h1>Webzone v2: Electric Bugaloo</h1>
 
 		<span style="width: 30px; height: 30px; display: inline-block; background-color:green;" onclick="connect_to_server('192.168.0.25', 8000);"></span>
 		<span style="width: 30px; height: 30px; display: inline-block; background-color:orange;" onclick="send_message();"></span>
 		<span style="width: 30px; height: 30px; display: inline-block; background-color:red;" onclick="websocket.close();"></span>
-		<br>
+
 		<br>
 		<br>
 
-		<!--<div class="button" onclick="">
+<!--		<div class="button">
 			<span class="button-text">A</span>
-		</div> -->
+</div> -->
 	</body>
 </html>
