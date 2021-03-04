@@ -12,21 +12,43 @@ html {
 	position: fixed;
 	scroll-behavior: none;
 	background-color: var(--background);
+	font-family: 'Roboto', sans-serif;
 }
 
 body {
+	color: white;
+	font-size: 14pt;
 	padding-left: 50px;
 	padding-right: 50px;
 	padding-bottom: 20px;
 }
 
-input {
+input[type=text] {
 	width: 100%;
-	height: 18pt;
+	height: 24pt;
+
 	max-width: 500px;
-	font-size: 13pt;
-	border-style: none;
-	border-radius: 0px;
+	font-size: 15pt;
+	border-style: solid;
+	border-radius: 5px;
+
+	margin: auto 0;
+}
+
+input[type=text]:focus {
+	outline-width: 3px;
+	outline-color: var(--dark);
+	border-color: var(--dark);
+}
+
+input[type=number] {
+	width: 30%;
+	height: 24pt;
+
+	display: inline-block;
+	font-size: 15pt;
+	border-style: solid;
+	border-radius: 5px;
 
 	margin: auto 0;
 }
@@ -34,6 +56,7 @@ input {
 .joystick {
 	width: 140px;
 	height: 140px;
+	display: inline-block;
 	background-color: var(--dark);
 	border-radius: 600px;
 	touch-action: manipulation;
@@ -54,12 +77,20 @@ input {
 .button {
 	width: 100px;
 	height: 100px;
-	border-radius: 400px;
+	border-radius: 100px;
 
+	font-weight: bold;
 	float: right;
+
 	background-color: var(--highlight);
-	position: relative;
+	color: white;
+	font-style: bold;
+	font-size: 30pt;
 	text-align: center;
+	line-height: 100px;
+
+	margin: 10px;
+
 	touch-action: manipulation;
 }
 
@@ -67,12 +98,22 @@ input {
 	background-color: var(--medium);
 }
 
-.button-text {
-	color: white;
-	font-style: bold;
+.button-submit {
+	background-color: var(--highlight);
+	display: inline-block;
+	padding: 10px;
 	font-size: 30pt;
-	vertical-align: middle;
+	border-radius: 10px;
 
-	transform: translate(-50%, -50%);
-	touch-action: manipulation;
+	color: white;
+
+	margin-left: 20px;
+	margin-right: 20px;
+	margin-top: 20px;
+	margin-bottom: 20px;
+	font-weight: normal;
+}
+
+.button-submit:active {
+	background-color: var(--medium);
 }

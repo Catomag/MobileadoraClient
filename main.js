@@ -1,5 +1,6 @@
 "use strict";
 var websocket;
+var connected = false;
 
 // Library stuff
 
@@ -74,6 +75,7 @@ class Joystick {
 		this.pitch = 0;
 		this.yaw = 0;
 
+		this.last_message = new Date();
 
 		this.handle.addEventListener('touchstart', () => {
 			this.handle.addEventListener('mouseup', (e) => { this.onStop(this) }, false);
@@ -135,21 +137,25 @@ class Joystick {
 		handle.style.left = (center_x + new_x) + "px";
 		handle.style.top  = (center_y + new_y) + "px";
 
-		// send movement info to websocket server
-		let buf = new Uint8Array(2 + 2 + 2);
+		// only send message if 10ms have ellapsed
+		if(connected && 10 < (new Date() - self.last_message)) {
+			// send movement info to websocket server
+			let buf = new Uint8Array(2 + 2 + 2);
 
-		buf[0] = 4; // input type
-		buf[1] = self.id; // input index (hard coded)
+			buf[0] = 4; // input type
+			buf[1] = self.id; // input index (hard coded)
 
-		let yaw_binary = floatToShort(self.yaw);
-		buf[2] = (yaw_binary >> 8) & 255;
-		buf[3] = (yaw_binary >> 0) & 255;
+			let yaw_binary = floatToShort(self.yaw);
+			buf[2] = (yaw_binary >> 8) & 255;
+			buf[3] = (yaw_binary >> 0) & 255;
 
-		let pitch_binary = -floatToShort(self.pitch);
-		buf[4] = (pitch_binary >> 8) & 255;
-		buf[5] = (pitch_binary >> 0) & 255;
+			let pitch_binary = -floatToShort(self.pitch);
+			buf[4] = (pitch_binary >> 8) & 255;
+			buf[5] = (pitch_binary >> 0) & 255;
 
-		websocket.send(buf);
+			websocket.send(buf);
+			self.last_message = new Date();
+		}
 
 		evt.preventDefault();
 	}
@@ -176,7 +182,8 @@ class Joystick {
 		buf[4] = 0;
 		buf[5] = 0;
 
-		websocket.send(buf);
+		if(connected)
+			websocket.send(buf);
 	}
 }
 
@@ -184,7 +191,7 @@ class Joystick {
 var button_count = 0;
 class Button {
 	constructor(char) {
-		this.source = "<div class=\"button\"><span class=\"button-text\">" + char + "</span></div>";
+		this.source = "<div class=\"button\">" + char + "</div>";
 
 		let div = document.createElement('div');
 		div.innerHTML = this.source.trim();
@@ -201,12 +208,12 @@ class Button {
 	}
 
 	onClick(self) {
-		console.log("this ran");
 		let buf = new Uint8Array(2 + 1);
 		buf[0] = 1;
 		buf[1] = self.id;
 		buf[2] = 1;
-		websocket.send(buf);
+		if(connected)
+			websocket.send(buf);
 	}
 
 	onRelease() {
@@ -214,7 +221,8 @@ class Button {
 		buf[0] = 1;
 		buf[1] = self.id;
 		buf[2] = 0;
-		websocket.send(buf);
+		if(connected)
+			websocket.send(buf);
 	}
 }
 
@@ -230,6 +238,7 @@ function connect_to_server(ip_address, port) {
 	websocket.onopen = () => {
 		console.log("Socket connected!");
 		confirm('Connected to server!');
+		connected = true;
 
 		// send message to server
 		//websocket.send("Connected!");
@@ -239,6 +248,7 @@ function connect_to_server(ip_address, port) {
 		confirm('Server closed =(');
 		//confirm("Socket closed =(");
 		console.log("Socket closed =(");
+		connected = false;
 	};
 
 	websocket.onmessage = (evt) => {
