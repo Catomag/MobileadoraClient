@@ -60,7 +60,7 @@ function inputSend(id, index, data) {
 
 var joystick_count = 0;
 class Joystick {
-	constructor() {
+	constructor(internal_type) {
 		this.source = "<div class=\"joystick\"><div class=\"joystick-handle\"></div></div>";
 
 		let div = document.createElement('div');
@@ -91,6 +91,7 @@ class Joystick {
 			this.handle.addEventListener('touchmove', (e) => { this.onDrag(this, e) }, false);
 		});
 
+		this.internal_type = internal_type;
 		this.id = joystick_count;
 		joystick_count++;
 	}
@@ -140,18 +141,24 @@ class Joystick {
 		// only send message if 10ms have ellapsed
 		if(connected && 10 < (new Date() - self.last_message)) {
 			// send movement info to websocket server
-			let buf = new Uint8Array(2 + 2 + 2);
+			let floatArray = new Float32Array(2);
+			floatArray[0] =  self.yaw;
+			floatArray[1] = -self.pitch;
 
-			buf[0] = 4; // input type
-			buf[1] = self.id; // input index (hard coded)
+			let head = new Uint8Array(2);
 
-			let yaw_binary = floatToShort(self.yaw);
-			buf[2] = (yaw_binary >> 8) & 255;
-			buf[3] = (yaw_binary >> 0) & 255;
+			head[0] = self.internal_type; // input type
+			head[1] = self.id; // input index (hard coded)
 
-			let pitch_binary = -floatToShort(self.pitch);
-			buf[4] = (pitch_binary >> 8) & 255;
-			buf[5] = (pitch_binary >> 0) & 255;
+			let buf = new Blob([head, floatArray]);
+
+//			let yaw_binary = floatToShort(self.yaw);
+//			buf[2] = (yaw_binary >> 8) & 255;
+//			buf[3] = (yaw_binary >> 0) & 255;
+//
+//			let pitch_binary = -floatToShort(self.pitch);
+//			buf[4] = (pitch_binary >> 8) & 255;
+//			buf[5] = (pitch_binary >> 0) & 255;
 
 			websocket.send(buf);
 			self.last_message = new Date();
@@ -174,13 +181,15 @@ class Joystick {
 		self.handle.ontouchend = null;
 		self.handle.ontouchmove = null;
 
-		let buf = new Uint8Array(2 + 2 + 2);
-		buf[0] = 4;
-		buf[1] = self.id;
-		buf[2] = 0;
-		buf[3] = 0;
-		buf[4] = 0;
-		buf[5] = 0;
+		let floatArray = new Float32Array(2);
+		floatArray[0] = 0;
+		floatArray[1] = 0;
+
+		let head = new Uint8Array(2);
+		head[0] = self.internal_type;
+		head[1] = self.id;
+
+		let buf = new Blob([head, floatArray]);
 
 		if(connected)
 			websocket.send(buf);
@@ -190,7 +199,7 @@ class Joystick {
 
 var button_count = 0;
 class Button {
-	constructor(char) {
+	constructor(internal_type, char) {
 		this.source = "<div class=\"button\">" + char + "</div>";
 
 		let div = document.createElement('div');
@@ -203,13 +212,14 @@ class Button {
 		this.base.addEventListener('touchend', () => { this.onRelease(this); }, false);
 		this.base.addEventListener('mouseup', () => { this.onRelease(this); }, false);
 
+		this.internal_type = internal_type;
 		this.id = button_count;
 		button_count++;
 	}
 
 	onClick(self) {
 		let buf = new Uint8Array(2 + 1);
-		buf[0] = 1;
+		buf[0] = self.internal_type;
 		buf[1] = self.id;
 		buf[2] = 1;
 		if(connected)
@@ -218,7 +228,7 @@ class Button {
 
 	onRelease() {
 		let buf = new Uint8Array(2 + 1);
-		buf[0] = 1;
+		buf[0] = self.internal_type;
 		buf[1] = self.id;
 		buf[2] = 0;
 		if(connected)
@@ -237,7 +247,7 @@ function connect_to_server(ip_address, port) {
 	// As soon as server connects
 	websocket.onopen = () => {
 		console.log("Socket connected!");
-		confirm('Connected to server!');
+		console.log('Connected to server!');
 		connected = true;
 
 		// send message to server
@@ -245,7 +255,7 @@ function connect_to_server(ip_address, port) {
 	};
 
 	websocket.onclose = () => {
-		confirm('Server closed =(');
+		console.log('Server closed =(');
 		//confirm("Socket closed =(");
 		console.log("Socket closed =(");
 		connected = false;
