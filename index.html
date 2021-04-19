@@ -28,6 +28,8 @@
 
 		<script> 
 			// Code from: https://www.geeksforgeeks.org/making-a-simple-pwa-under-5-minutes/
+			var j1;
+			var b1;
 
 			// Register the Service Worker 
 			async function registerSW() { 
@@ -50,9 +52,8 @@
 					document.body.style.zoom = 0.99;
 				});
 
-				var j1 = new Joystick(4);
-
-				var b1 = new Button(1, "A");
+				j1 = new Joystick(4);
+				b1 = new Button(1, "A");
 
 
 //				var j2 = new Joystick();
