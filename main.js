@@ -8,8 +8,8 @@ function frame_load(frame_data) {
 }
 
 
-function connect_to_server(ip_address, port) {
-	websocket = new WebSocket("ws://" + ip_address + ":" + port);
+function connect_to_server(ip_address) {
+	websocket = new WebSocket("ws://" + ip_address);
 
 	// As soon as server connects
 	websocket.onopen = () => {
@@ -33,6 +33,7 @@ function connect_to_server(ip_address, port) {
 		console.log("Received message: " + evt.data);
 
 		// read header
+
 
 		// if frame
 

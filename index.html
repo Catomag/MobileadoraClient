@@ -26,10 +26,12 @@
 			}
 		</style>
 
+		<script src="serviceworker.js"></script>
+		<script src="main.js"></script>
+		<script src="inputs.js"></script>
+
 		<script> 
 			// Code from: https://www.geeksforgeeks.org/making-a-simple-pwa-under-5-minutes/
-			var j1;
-			var b1;
 
 			// Register the Service Worker 
 			async function registerSW() { 
@@ -52,6 +54,9 @@
 					document.body.style.zoom = 0.99;
 				});
 
+				var j1;
+				var b1;
+
 				j1 = new Joystick(4);
 				b1 = new Button(1, "A");
 
@@ -72,14 +77,12 @@
 			} 
 
 		</script>
-		<script src="serviceworker.js"></script>
-		<script src="main.js"></script>
 	</head>
 	
 	<!--<body onload="registerSW();" scroll="no" style="overflow: hidden; position: fixed;">-->
 	<body onload="registerSW();">
 
-		<span style="width: 30px; height: 30px; display: inline-block; background-color:green;" onclick="connect_to_server('192.168.0.25', 8000);"></span>
+		<span style="width: 30px; height: 30px; display: inline-block; background-color:green;" onclick="connect_to_server('192.168.0.25:8000');"></span>
 		<span style="width: 30px; height: 30px; display: inline-block; background-color:orange;" onclick="send_message();"></span>
 		<span style="width: 30px; height: 30px; display: inline-block; background-color:red;" onclick="websocket.close();"></span>
 

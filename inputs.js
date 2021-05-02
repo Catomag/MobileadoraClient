@@ -10,15 +10,31 @@ var input_dictionary = [
 
 
 class Input {
+	constructor(id, index) {
+		this.id = this.id;
+		this.index = this.index;
+		this.data = NULL;
+	}
+
 	send() {
-		throw new Error("Must implement send!");
+		if(connected) {
+			let header = new Uint8Array(2);
+
+			header[0] = this.id;
+			header[1] = this.index;
+
+			let buf = new Blob([head, this.data]);
+
+			websocket.send(buf);
+		}
 	}
 }
 
 
-var joystick_count = 0;
 class Joystick extends Input {
-	constructor(internal_type) {
+	constructor(id, index) {
+		super(id, index);
+
 		this.source = "<div class=\"joystick\"><div class=\"joystick-handle\"></div></div>";
 
 		let div = document.createElement('div');
@@ -103,14 +119,8 @@ class Joystick extends Input {
 			floatArray[0] =  this.yaw;
 			floatArray[1] = -this.pitch;
 
-			let head = new Uint8Array(2);
-
-			head[0] = this.internal_type; // input type
-			head[1] = this.id; // input index (hard coded)
-
-			let buf = new Blob([head, floatArray]);
-
-			websocket.send(buf);
+			this.data = floatArray;
+			this.send();
 			this.last_message = new Date();
 		}
 
@@ -135,30 +145,8 @@ class Joystick extends Input {
 		floatArray[0] = 0;
 		floatArray[1] = 0;
 
-		let head = new Uint8Array(2);
-		head[0] = this.internal_type;
-		head[1] = this.id;
-
-		let buf = new Blob([head, floatArray]);
-
-		if(connected)
-			websocket.send(buf);
-	}
-
-	send() {
-		// send movement info to websocket server
-		let floatArray = new Float32Array(2);
-		floatArray[0] =  this.yaw;
-		floatArray[1] = -this.pitch;
-
-		let head = new Uint8Array(2);
-
-		head[0] = this.internal_type; // input type
-		head[1] = this.id; // input index (hard coded)
-
-		let buf = new Blob([head, floatArray]);
-
-		websocket.send(buf);
+		this.data = floatArray;
+		this.send();
 	}
 }
 
@@ -166,6 +154,8 @@ class Joystick extends Input {
 var button_count = 0;
 class Button extends Input {
 	constructor(internal_type, char) {
+		super();
+
 		this.source = "<div class=\"button\">" + char + "</div>";
 
 		let div = document.createElement('div');
@@ -182,24 +172,22 @@ class Button extends Input {
 		console.log(internal_type);
 		console.log(this.internal_type);
 		this.id = button_count;
+
+		this.pressed = false;
 		button_count++;
 	}
 
 	onClick() {
-		let buf = new Uint8Array(2 + 1);
-		buf[0] = this.internal_type;
-		buf[1] = this.id;
-		buf[2] = 1;
-		if(connected)
-			websocket.send(buf);
+		this.pressed = true;
+
+		this.data = 1;
+		this.send();
 	}
 
 	onRelease() {
-		let buf = new Uint8Array(2 + 1);
-		buf[0] = this.internal_type;
-		buf[1] = this.id;
-		buf[2] = 0;
-		if(connected)
-			websocket.send(buf);
+		this.pressed = false;
+
+		this.data = 0;
+		this.send(0);
 	}
 }
