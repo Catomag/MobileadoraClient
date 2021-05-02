@@ -23,6 +23,16 @@ body {
 	padding-bottom: 20px;
 }
 
+ma-frame {
+	background-color: white;
+	display: flex;
+	justify-content: space-between;
+	align-items: space-between;
+	width: 98%;
+	height: 98%;
+	padding: 1%;
+}
+
 input[type=text] {
 	width: 100%;
 	height: 24pt;
@@ -53,7 +63,7 @@ input[type=number] {
 	margin: auto 0;
 }
 
-.joystick {
+ma-joystick {
 	width: 140px;
 	height: 140px;
 	display: inline-block;
@@ -62,19 +72,21 @@ input[type=number] {
 	touch-action: manipulation;
 }
 
-.joystick-handle {
+ma-joystick-handle {
 	width: 100px;
 	height: 100px;
 	border-radius: 100px;
+	display: inline-block;
 
 	position: relative;
 	top: calc(50% - 50px);
 	left: calc(50% - 50px);
 	background-color: var(--highlight);
 	touch-action: manipulation;
+	z-index: 1000;
 }
 
-.button {
+ma-button {
 	width: 100px;
 	height: 100px;
 	border-radius: 100px;
@@ -89,16 +101,18 @@ input[type=number] {
 	text-align: center;
 	line-height: 100px;
 
+	align-self: flex-end;
+
 	margin: 10px;
 
 	touch-action: manipulation;
 }
 
-.button:active {
+ma-button:active {
 	background-color: var(--medium);
 }
 
-.button-submit {
+ma-button-submit {
 	background-color: var(--highlight);
 	display: inline-block;
 	padding: 10px;
@@ -114,6 +128,6 @@ input[type=number] {
 	font-weight: normal;
 }
 
-.button-submit:active {
+ma-button-submit:active {
 	background-color: var(--medium);
 }

@@ -11,9 +11,9 @@ var input_dictionary = [
 
 class Input {
 	constructor(id, index) {
-		this.id = this.id;
-		this.index = this.index;
-		this.data = NULL;
+		this.id = id;
+		this.index = index;
+		this.data;
 	}
 
 	send() {
@@ -23,9 +23,11 @@ class Input {
 			header[0] = this.id;
 			header[1] = this.index;
 
-			let buf = new Blob([head, this.data]);
+			//console.log("sending data: ", this.data);
+			let buf = new Blob([header, this.data]);
 
 			websocket.send(buf);
+			console.log("sending: " + this.data);
 		}
 	}
 }
@@ -35,12 +37,12 @@ class Joystick extends Input {
 	constructor(id, index) {
 		super(id, index);
 
-		this.source = "<div class=\"joystick\"><div class=\"joystick-handle\"></div></div>";
+		this.source = "<ma-joystick><ma-joystick-handle></ma-joystick-handle></ma-joystick>";
 
 		let div = document.createElement('div');
 		div.innerHTML = this.source.trim();
 
-		this.base = document.getElementsByTagName('body')[0].insertAdjacentElement('beforeend', div.firstChild);
+		this.base = document.getElementsByTagName('ma-frame')[0].insertAdjacentElement('beforeend', div.firstChild);
 		this.handle = this.base.firstChild;
 
 		this.w = this.handle.offsetWidth;
@@ -52,22 +54,18 @@ class Joystick extends Input {
 		this.last_message = new Date();
 
 		this.handle.addEventListener('touchstart', () => {
-			this.handle.addEventListener('mouseup', (e) => { this.onStop() }, false);
+			this.handle.addEventListener('mouseup',	() => { this.onStop() }, false);
 			this.handle.addEventListener('mousemove', (e) => { this.onDrag(e) }, false);
-			this.handle.addEventListener('touchend', (e) => { this.onStop() }, false);
+			this.handle.addEventListener('touchend', () => { this.onStop() }, false);
 			this.handle.addEventListener('touchmove', (e) => { this.onDrag(e) }, false);
 		}, false);
 
 		this.handle.addEventListener('mousedown', () => {
 			this.handle.onmouseup = (e) => { this.onStop(); };
 			this.handle.onmousemove = (e) => { this.onDrag(e); };
-			this.handle.addEventListener('touchend', (e) => { this.onStop() }, false);
+			this.handle.addEventListener('touchend', () => { this.onStop() }, false);
 			this.handle.addEventListener('touchmove', (e) => { this.onDrag(e) }, false);
 		});
-
-		this.internal_type = internal_type;
-		this.id = joystick_count;
-		joystick_count++;
 	}
 
 	onDrag(evt) {
@@ -151,43 +149,38 @@ class Joystick extends Input {
 }
 
 
-var button_count = 0;
 class Button extends Input {
-	constructor(internal_type, char) {
-		super();
+	constructor(id, index, char) {
+		super(id, index);
 
-		this.source = "<div class=\"button\">" + char + "</div>";
+		this.source = "<ma-button>" + char + "</ma-button>";
 
 		let div = document.createElement('div');
 		div.innerHTML = this.source.trim();
 
-		this.base = document.getElementsByTagName('body')[0].insertAdjacentElement('beforeend', div.firstChild);
+		this.base = document.getElementsByTagName('ma-frame')[0].insertAdjacentElement('beforeend', div.firstChild);
 
 		this.base.addEventListener('touchstart', () => { this.onClick(); }, false);
 		this.base.addEventListener('mousedown', () => { this.onClick(); }, false);
 		this.base.addEventListener('touchend', () => { this.onRelease(); }, false);
 		this.base.addEventListener('mouseup', () => { this.onRelease(); }, false);
 
-		this.internal_type = internal_type;
-		console.log(internal_type);
-		console.log(this.internal_type);
-		this.id = button_count;
+		this.data = new Uint8Array(1);
 
 		this.pressed = false;
-		button_count++;
 	}
 
 	onClick() {
 		this.pressed = true;
 
-		this.data = 1;
+		this.data[0] = 1;
 		this.send();
 	}
 
 	onRelease() {
 		this.pressed = false;
 
-		this.data = 0;
-		this.send(0);
+		this.data[0] = 0;
+		this.send();
 	}
 }

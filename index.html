@@ -31,6 +31,7 @@
 		<script src="inputs.js"></script>
 
 		<script> 
+			var ma;
 			// Code from: https://www.geeksforgeeks.org/making-a-simple-pwa-under-5-minutes/
 
 			// Register the Service Worker 
@@ -57,8 +58,13 @@
 				var j1;
 				var b1;
 
-				j1 = new Joystick(4);
-				b1 = new Button(1, "A");
+				j1 = new Joystick(4, 0);
+				j1 = new Joystick(4, 1);
+				j1 = new Joystick(4, 2);
+				b1 = new Button(1, 0, "A");
+
+				ma = new MobileadoraClient();
+				//ma.connect("");
 
 
 //				var j2 = new Joystick();
@@ -82,7 +88,7 @@
 	<!--<body onload="registerSW();" scroll="no" style="overflow: hidden; position: fixed;">-->
 	<body onload="registerSW();">
 
-		<span style="width: 30px; height: 30px; display: inline-block; background-color:green;" onclick="connect_to_server('192.168.0.25:8000');"></span>
+		<span style="width: 30px; height: 30px; display: inline-block; background-color:green;" onclick="ma.connect(window.location.hostname + ':8000');"></span>
 		<span style="width: 30px; height: 30px; display: inline-block; background-color:orange;" onclick="send_message();"></span>
 		<span style="width: 30px; height: 30px; display: inline-block; background-color:red;" onclick="websocket.close();"></span>
 
@@ -105,5 +111,7 @@
 		<div class="button-submit">Submit</div>
 		</center>-->
 
+		<ma-frame>
+		</ma-frame>
 	</body>
 </html>
