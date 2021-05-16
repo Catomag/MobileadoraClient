@@ -1,48 +1,39 @@
 // IMPORTANT, THIS MUST MATCH THE SERVER"S DICTOINARY
-var input_dictionary = [
-	"text",
-	"button",
-	"submit",
-	"toggle",
-	"joystick",
-	"generic",
-];
-
 
 class Input {
-	constructor(id, index) {
+	constructor(ma, id, index) {
 		this.id = id;
 		this.index = index;
 		this.data;
+		this.ma = ma;
 	}
 
 	send() {
-		if(connected) {
+		if(this.ma.connected) {
 			let header = new Uint8Array(2);
 
 			header[0] = this.id;
 			header[1] = this.index;
 
-			//console.log("sending data: ", this.data);
 			let buf = new Blob([header, this.data]);
+			console.log("message sent");
 
-			websocket.send(buf);
-			console.log("sending: " + this.data);
+			this.ma.ws.send(buf);
 		}
 	}
 }
 
 
 class Joystick extends Input {
-	constructor(id, index) {
-		super(id, index);
+	constructor(ma, id, index) {
+		super(ma, id, index);
 
 		this.source = "<ma-joystick><ma-joystick-handle></ma-joystick-handle></ma-joystick>";
 
 		let div = document.createElement('div');
 		div.innerHTML = this.source.trim();
 
-		this.base = document.getElementsByTagName('ma-frame')[0].insertAdjacentElement('beforeend', div.firstChild);
+		this.base = this.ma.root_elem.insertAdjacentElement('beforeend', div.firstChild);
 		this.handle = this.base.firstChild;
 
 		this.w = this.handle.offsetWidth;
@@ -111,7 +102,7 @@ class Joystick extends Input {
 		handle.style.top  = (center_y + new_y) + "px";
 
 		// only send message if 10ms have ellapsed
-		if(connected && 10 < (new Date() - this.last_message)) {
+		if(this.ma.connected && 10 < (new Date() - this.last_message)) {
 			// send movement info to websocket server
 			let floatArray = new Float32Array(2);
 			floatArray[0] =  this.yaw;
@@ -150,15 +141,15 @@ class Joystick extends Input {
 
 
 class Button extends Input {
-	constructor(id, index, char) {
-		super(id, index);
+	constructor(ma, id, index, char) {
+		super(ma, id, index);
 
 		this.source = "<ma-button>" + char + "</ma-button>";
 
 		let div = document.createElement('div');
 		div.innerHTML = this.source.trim();
 
-		this.base = document.getElementsByTagName('ma-frame')[0].insertAdjacentElement('beforeend', div.firstChild);
+		this.base = this.ma.root_elem.insertAdjacentElement('beforeend', div.firstChild);
 
 		this.base.addEventListener('touchstart', () => { this.onClick(); }, false);
 		this.base.addEventListener('mousedown', () => { this.onClick(); }, false);

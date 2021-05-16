@@ -58,13 +58,11 @@
 				var j1;
 				var b1;
 
-				j1 = new Joystick(4, 0);
-				j1 = new Joystick(4, 1);
-				j1 = new Joystick(4, 2);
-				b1 = new Button(1, 0, "A");
+//				j1 = new Joystick(4, 0);
+//				b1 = new Button(1, 0, "A");
+//				b1 = new Button(1, 1, "B");
 
 				ma = new MobileadoraClient();
-				//ma.connect("");
 
 
 //				var j2 = new Joystick();
@@ -90,10 +88,8 @@
 
 		<span style="width: 30px; height: 30px; display: inline-block; background-color:green;" onclick="ma.connect(window.location.hostname + ':8000');"></span>
 		<span style="width: 30px; height: 30px; display: inline-block; background-color:orange;" onclick="send_message();"></span>
-		<span style="width: 30px; height: 30px; display: inline-block; background-color:red;" onclick="websocket.close();"></span>
+		<span style="width: 30px; height: 30px; display: inline-block; background-color:red;" onclick="ma.ws.close();"></span>
 
-		<br>
-		<br>
 		<br>
 		<br>
 		<!--<h1> Hello, this is a header!</h1>
