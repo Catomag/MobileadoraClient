@@ -39,16 +39,16 @@ class MobileadoraClient {
 		this.scrollable	= ((data[0] >> 1) & 1) > 0 ? true : false;
 		this.resizeable	= ((data[0] >> 0) & 1) > 0 ? true : false;
 
-		console.log("type: " + this.dynamic);
-		console.log("orientation: " + this.vertical);
-		console.log("scrollable: " + this.scrollable);
-		console.log("resizeable: " + this.resizeable);
+	//console.log("type: " + this.dynamic);
+	//console.log("orientation: " + this.vertical);
+	//console.log("scrollable: " + this.scrollable);
+	//console.log("resizeable: " + this.resizeable);
 
 		let input_count = data[1];
 		let element_count = data[2];
 
-		console.log("input count: " + input_count);
-		console.log("element count: " + element_count);
+	//console.log("input count: " + input_count);
+	//console.log("element count: " + element_count);
 
 		// go input by input and add
 		let byte = 3;
@@ -64,10 +64,11 @@ class MobileadoraClient {
 			if(type > 0 && type < this.input_counts.length) {
 				count = this.input_counts[type];
 				this.input_counts[type] += 1;
-				console.log(this.input_counts);
+				//console.log(this.input_counts);
 			}
 
 			// actually add input
+			let input;
 
 			switch(this.dictionary[type]) {
 				// TODO: add missing ones
@@ -75,24 +76,29 @@ class MobileadoraClient {
 				case "text":
 					break;
 				case "button":
-					new Button(this, type, count, "A");
+					input = new Button(this, type, count, "A");
 					break;
 				case "submit":
 					break;
 				case "toggle":
 					break;
 				case "joystick":
-					new Joystick(this, type, count);
+					input = new Joystick(this, type, count);
 					break;
 				case "generic":
 					break;
 
 				default:
-					console.log("invalid type: " + type);
+					console.error("invalid type: " + type);
 					break;
 			}
 
+			this.inputs.push(input);
 			byte += 5;
+		}
+
+		// go element by element and add
+		for(let i = 0; i < element_count; i++) {
 		}
 	}
 
@@ -135,22 +141,27 @@ class MobileadoraClient {
 
 			let data = new Uint8Array(await evt.data.arrayBuffer());
 
-			console.log(data);
-
 			// read header
-			let message_type = (data[0] >> 4) & 4;
+			let message_type = (data[0] >> 4) & 15;
 
 			// if message type is frame
 			if(message_type == 0) {
-				console.log("data[0]: " + data[0]);
+				console.log("received frame");
 				this.frameLoad(data);
 			}
 
 			// if message is input request, forcefully send all input data at once
-			if(message_type == 1) {
+			else if(message_type == 1) {
+				console.log("received fetch request");
+				// DO NOT REMOVE
+				let dynamic = this.dynamic;
+				this.dynamic = true;
+
 				for(let i = 0; i < this.inputs.length; i++) {
 					this.inputs[i].send();
 				}
+
+				this.dynamic = dynamic;
 			}
 		};
 	}

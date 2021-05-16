@@ -9,7 +9,7 @@ class Input {
 	}
 
 	send() {
-		if(this.ma.connected) {
+		if(this.ma.connected && this.ma.dynamic) {
 			let header = new Uint8Array(2);
 
 			header[0] = this.id;
