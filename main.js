@@ -74,16 +74,17 @@ class MobileadoraClient {
 				// TODO: add missing ones
 				// TODO: take the "size variable into account
 				case "text":
+					input = new Text(this, type, count, size);
 					break;
 				case "button":
-					input = new Button(this, type, count, "A");
+					input = new Button(this, type, count, size, "A");
 					break;
 				case "submit":
 					break;
 				case "toggle":
 					break;
 				case "joystick":
-					input = new Joystick(this, type, count);
+					input = new Joystick(this, type, count, size);
 					break;
 				case "generic":
 					break;

@@ -1,10 +1,11 @@
 // IMPORTANT, THIS MUST MATCH THE SERVER"S DICTOINARY
 
 class Input {
-	constructor(ma, id, index) {
+	constructor(ma, id, index, size) {
 		this.id = id;
 		this.index = index;
 		this.data;
+		this.size = size;
 		this.ma = ma;
 	}
 
@@ -25,8 +26,8 @@ class Input {
 
 
 class Joystick extends Input {
-	constructor(ma, id, index) {
-		super(ma, id, index);
+	constructor(ma, id, index, size) {
+		super(ma, id, index, size);
 
 		this.source = "<ma-joystick><ma-joystick-handle></ma-joystick-handle></ma-joystick>";
 
@@ -141,8 +142,8 @@ class Joystick extends Input {
 
 
 class Button extends Input {
-	constructor(ma, id, index, char) {
-		super(ma, id, index);
+	constructor(ma, id, index, size, char) {
+		super(ma, id, index, size);
 
 		this.source = "<ma-button>" + char + "</ma-button>";
 
@@ -173,5 +174,52 @@ class Button extends Input {
 
 		this.data[0] = 0;
 		this.send();
+	}
+}
+
+class Text extends Input {
+	constructor(ma, id, index, size) {
+		super(ma, id, index, size);
+
+		this.source = "<ma-text contenteditable='true'></ma-text>";
+
+		let div = document.createElement('div');
+		div.innerHTML = this.source.trim();
+
+		this.base = this.ma.root_elem.insertAdjacentElement('beforeend', div.firstChild);
+
+		this.base.addEventListener('keypress', (e) => { this.onPressed(e); }, false);
+		this.base.addEventListener('keyup', (e) => { this.onRelease(e); }, false);
+
+		this.data = new Uint8Array(size);
+		this.current = 0;
+		this.text_size = this.size - 1;
+	}
+
+	onPressed(e) {
+		let str = this.base.innerHTML.slice();
+		str = str.replace(/\u00a0/g, " "); // get rid of &nbsp; (a dumb thing i shouldn't need to be doing
+		str += e.key;
+
+		if(str.length > this.text_size) {
+			e.preventDefault();
+		}
+		else {
+			let last = 0
+			for(var i = 0; i < this.size && i < str.length; i++) {
+				this.data[i] = str[i].charCodeAt(0);
+
+				last = i;
+			}
+
+			this.data[last + 1] = 0; // terminating characer
+
+			console.log(this.data);
+
+			this.send();
+		}
+	}
+
+	onRelease(e) {
 	}
 }
