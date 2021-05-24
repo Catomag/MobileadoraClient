@@ -188,18 +188,48 @@ class Text extends Input {
 
 		this.base = this.ma.root_elem.insertAdjacentElement('beforeend', div.firstChild);
 
-		this.base.addEventListener('keypress', (e) => { this.onPressed(e); }, false);
+		this.base.addEventListener('input', (e) => { this.onPressed(e); }, false);
 		this.base.addEventListener('keyup', (e) => { this.onRelease(e); }, false);
 
 		this.data = new Uint8Array(size);
 		this.current = 0;
 		this.text_size = this.size - 1;
+		console.log("text size: " + this.text_size);
+	}
+
+	isKeyCharacter(k) {
+		// courtesy of absolute chad over at stack overflow
+		// stackoverflow.com/questions/7770561/reject-control-keys-on-keydown-event
+		if(	   k == 20 /* Caps lock */
+			|| k == 16 /* Shift */
+			|| k == 8 /* Backspace */
+			|| k == 9 /* Tab */
+			|| k == 27 /* Escape Key */
+			|| k == 17 /* Control Key */
+			|| k == 91 /* Windows Command Key */
+			|| k == 19 /* Pause Break */
+			|| k == 18 /* Alt Key */
+			|| k == 93 /* Right Click Point Key */
+			|| ( k >= 35 && k <= 40 ) /* Home, End, Arrow Keys */
+			|| k == 45 /* Insert Key */
+			|| ( k >= 33 && k <= 34 ) /*Page Down, Page Up */
+			|| (k >= 112 && k <= 123) /* F1 - F12 */
+			|| (k >= 144 && k <= 145 )) {
+			return false;	
+		}
+		else {
+			return true;
+		}
 	}
 
 	onPressed(e) {
 		let str = this.base.innerHTML.slice();
-		str = str.replace(/\u00a0/g, " "); // get rid of &nbsp; (a dumb thing i shouldn't need to be doing
-		str += e.key;
+
+		str = str.replace(/&nbsp;/g, ' '); // get rid of &nbsp; (a dumb thing i shouldn't need to be doing
+		console.log(str);
+		if(e.isComposing)
+			str += e.key;
+		console.log(str);
 
 		if(str.length > this.text_size) {
 			e.preventDefault();

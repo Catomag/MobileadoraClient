@@ -1,8 +1,8 @@
 :root {
-	--highlight: #d40055;
-	--medium: #800033;
-	--dark: #00222b;
-	--background: #004455;
+	--highlight: #5fc75d;
+	--medium: #36868f;
+	--dark: #203671;
+	--background: #0f052d;
 }
 
 html {
@@ -43,6 +43,7 @@ ma-text {
 	border-radius: 5px;
 	color: black;
 
+	display: flex;
 	margin: auto 0;
 }
 

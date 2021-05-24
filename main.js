@@ -1,5 +1,6 @@
 "use strict";
 
+let alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
 
 class MobileadoraClient {
 	constructor() {
@@ -54,10 +55,18 @@ class MobileadoraClient {
 		let byte = 3;
 		for(let i = 0; i < input_count; i++) {
 			let type = data[byte];
-			let size = new Uint32Array([data[byte + 1], 
-										data[byte + 2], 
-										data[byte + 3], 
-										data[byte + 4]])[0];
+
+			// there is litterally no better way to convert 4 bytes into a 32 byte number in js
+			let size_byte1 = data[byte + 1];
+			let size_byte2 = data[byte + 2];
+			let size_byte3 = data[byte + 3];
+			let size_byte4 = data[byte + 4];
+
+			let size = 0;
+			size |= size_byte4 << 24;
+			size |= size_byte3 << 16;
+			size |= size_byte2 << 8;
+			size |= size_byte1;
 
 			let count = 0;
 			// increment the input counts
@@ -77,7 +86,7 @@ class MobileadoraClient {
 					input = new Text(this, type, count, size);
 					break;
 				case "button":
-					input = new Button(this, type, count, size, "A");
+					input = new Button(this, type, count, size, alphabet[count % 25]);
 					break;
 				case "submit":
 					break;
@@ -94,6 +103,7 @@ class MobileadoraClient {
 					break;
 			}
 
+			// using the power of OOP
 			this.inputs.push(input);
 			byte += 5;
 		}
@@ -153,8 +163,13 @@ class MobileadoraClient {
 
 			// if message is input request, forcefully send all input data at once
 			else if(message_type == 1) {
+				// get rid of current frame before proceeding
+				this.frameRemove();
+
 				console.log("received fetch request");
+
 				// DO NOT REMOVE
+				// input can only be sent if ma is dynamic, so dynamic is set to true all the info is sent and then it is quickly turned off
 				let dynamic = this.dynamic;
 				this.dynamic = true;
 
