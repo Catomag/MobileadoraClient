@@ -26,25 +26,26 @@ body {
 ma-frame {
 	background-color: white;
 	display: flex;
+	flex-wrap: wrap;
 	justify-content: space-between;
 	align-items: space-between;
 	width: 98%;
-	height: 300px;
 	padding: 1%;
 }
 
 ma-text {
-	width: 100%;
-	height: 24pt;
-
-	max-width: 500px;
+	min-width: 200px;
 	font-size: 15pt;
 	border-style: solid;
 	border-radius: 5px;
 	color: black;
 
-	display: flex;
+	padding-left: 1pt;
+	padding-right: 1pt;
 	margin: auto 0;
+
+	display: flex;
+	flex-direction: column;
 }
 
 ma-text:focus {
@@ -132,4 +133,9 @@ ma-button-submit {
 
 ma-button-submit:active {
 	background-color: var(--medium);
+}
+
+ma-color {
+	width: 100px;
+	height: 100px;
 }

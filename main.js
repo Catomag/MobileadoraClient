@@ -14,7 +14,7 @@ class MobileadoraClient {
 
 		this.inputs = [];
 
-		this.dictionary = [
+		this.input_dictionary = [
 			"text",
 			"button",
 			"submit",
@@ -23,12 +23,31 @@ class MobileadoraClient {
 			"generic",
 		];
 
-		this.input_counts = new Uint8Array(this.dictionary.length);
+		this.element_dictionary = [
+			"text",
+			"break",
+			"line",
+			"h1",
+			"h2",
+			"h3",
+			"color",
+			"image",
+		];
+
+		this.input_counts = new Uint8Array(this.input_dictionary.length);
+		this.element_counts = new Uint8Array(this.element_dictionary.length);
 	}
 
 	inputCount() {
 		return this.inputs.length;
 	}
+
+	addElement(source) {
+		let div = document.createElement('div');
+		div.innerHTML = source.trim();
+
+		this.root_elem.insertAdjacentElement('beforeend', div.firstChild);
+	}	
 
 	// uses data from frame to create all inputs, adjust viewport and 
 	frameLoad(data) {
@@ -79,7 +98,7 @@ class MobileadoraClient {
 			// actually add input
 			let input;
 
-			switch(this.dictionary[type]) {
+			switch(this.input_dictionary[type]) {
 				// TODO: add missing ones
 				// TODO: take the "size variable into account
 				case "text":
@@ -105,11 +124,52 @@ class MobileadoraClient {
 
 			// using the power of OOP
 			this.inputs.push(input);
-			byte += 5;
+			byte = byte + 5;
 		}
 
 		// go element by element and add
 		for(let i = 0; i < element_count; i++) {
+			let type = data[byte];
+
+			// once again, there is litterally no better way to convert 4 bytes into a 32 byte number in js
+			let size_byte1 = data[byte + 1];
+			let size_byte2 = data[byte + 2];
+			let size_byte3 = data[byte + 3];
+			let size_byte4 = data[byte + 4];
+
+			let size = 0;
+			size |= size_byte4 << 24;
+			size |= size_byte3 << 16;
+			size |= size_byte2 << 8;
+			size |= size_byte1;
+
+			console.log(size);
+
+			// read forward set number of bytes
+			byte = byte + 5;
+
+			let count = 0;
+			// increment the input counts
+			if(type > 0 && type < this.element_counts.length) {
+				count = this.element_counts[type];
+				this.element_counts[type] += 1;
+			}
+
+			// add elements
+
+			console.log(byte);
+			switch(this.element_dictionary[type]) {
+				case "color":
+					this.addElement("<ma-color style='background-color: rgb(" + data[byte] + "," + data[byte + 1] + "," + data[byte + 2] + ")'></ma-color>");
+					break;
+
+				default:
+					console.error("invalid type: " + type);
+					break;
+			}
+
+			// using the power of OOP
+			byte = byte + size;
 		}
 	}
 
@@ -150,22 +210,37 @@ class MobileadoraClient {
 			evt.data;
 			console.log("Received message: " + evt.data);
 
-			let data = new Uint8Array(await evt.data.arrayBuffer());
+
+			let i_love_async_functions = (blobs_were_a_masterful_invention) => {
+				return new Promise((resolve, reject) => {
+					let stupid_js_bs = new FileReader(); // intrinsic documentation
+					stupid_js_bs.onload = function are_you_fucking_serious_right_now() {
+						resolve(stupid_js_bs.result);
+					};
+
+					stupid_js_bs.onerror = (error) => reject(error);
+
+					stupid_js_bs.readAsArrayBuffer(blobs_were_a_masterful_invention);
+				});
+			};
+
+			let data = new Uint8Array(await i_love_async_functions(evt.data));
+			console.log("the dark times are behind us");
 
 			// read header
 			let message_type = (data[0] >> 4) & 15;
 
 			// if message type is frame
 			if(message_type == 0) {
+				// get rid of current frame before proceeding
+				this.frameRemove();
+
 				console.log("received frame");
 				this.frameLoad(data);
 			}
 
 			// if message is input request, forcefully send all input data at once
 			else if(message_type == 1) {
-				// get rid of current frame before proceeding
-				this.frameRemove();
-
 				console.log("received fetch request");
 
 				// DO NOT REMOVE

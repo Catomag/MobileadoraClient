@@ -7,6 +7,7 @@ class Input {
 		this.data;
 		this.size = size;
 		this.ma = ma;
+		this.root_elem;
 	}
 
 	send() {
@@ -181,15 +182,17 @@ class Text extends Input {
 	constructor(ma, id, index, size) {
 		super(ma, id, index, size);
 
-		this.source = "<ma-text contenteditable='true'></ma-text>";
+		this.source = "<ma-text><span contenteditable='true'></span></ma-text>";
 
 		let div = document.createElement('div');
 		div.innerHTML = this.source.trim();
 
 		this.base = this.ma.root_elem.insertAdjacentElement('beforeend', div.firstChild);
+		this.text_elem = this.base.firstChild;
 
-		this.base.addEventListener('input', (e) => { this.onPressed(e); }, false);
-		this.base.addEventListener('keyup', (e) => { this.onRelease(e); }, false);
+		this.text_elem.addEventListener('input', (e) => { this.onInput(e); }, false);
+		this.text_elem.addEventListener('keydown', (e) => { this.onKeyPressed(e); }, false);
+		this.text_elem.addEventListener('keyup', (e) => { this.onRelease(e); }, false);
 
 		this.data = new Uint8Array(size);
 		this.current = 0;
@@ -222,20 +225,18 @@ class Text extends Input {
 		}
 	}
 
-	onPressed(e) {
-		let str = this.base.innerHTML.slice();
+	onInput(e) {
+		let str = this.text_elem.innerText.slice();
 
-		str = str.replace(/&nbsp;/g, ' '); // get rid of &nbsp; (a dumb thing i shouldn't need to be doing
-		console.log(str);
+		str = str.replaceAll('\u00a0', ' '); // get rid of &nbsp; (a dumb thing i shouldn't need to be doing)
 		if(e.isComposing)
 			str += e.key;
+
 		console.log(str);
 
-		if(str.length > this.text_size) {
-			e.preventDefault();
-		}
-		else {
-			let last = 0
+		if(str.length <= this.text_size) {
+			let last = -1; // if length is 0, then terminating character is at index 0 
+
 			for(var i = 0; i < this.size && i < str.length; i++) {
 				this.data[i] = str[i].charCodeAt(0);
 
@@ -243,13 +244,22 @@ class Text extends Input {
 			}
 
 			this.data[last + 1] = 0; // terminating characer
-
-			console.log(this.data);
-
 			this.send();
 		}
 	}
 
+	onKeyPressed(e) {
+		let str = this.text_elem.innerText.slice();
+
+		if(str.length >= this.text_size && this.isKeyCharacter(e.keyCode)) {
+			e.preventDefault();
+		}
+	}
+
 	onRelease(e) {
+		let str = this.base.innerHTML.slice();
+		if(str.length >= this.text_size) {
+			e.preventDefault();
+		}
 	}
 }
