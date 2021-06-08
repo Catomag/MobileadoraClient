@@ -178,6 +178,69 @@ class Button extends Input {
 	}
 }
 
+class SubmitButton extends Input {
+	constructor(ma, id, index, size, text) {
+		super(ma, id, index, size);
+
+		this.source = "<ma-button-submit>" + text + "</ma-button-submit>";
+
+		let div = document.createElement('div');
+		div.innerHTML = this.source.trim();
+
+		this.base = this.ma.root_elem.insertAdjacentElement('beforeend', div.firstChild);
+
+		this.base.addEventListener('touchstart', () => { this.onClick(); }, false);
+		this.base.addEventListener('mousedown', () => { this.onClick(); }, false);
+		this.base.addEventListener('touchend', () => { this.onRelease(); }, false);
+		this.base.addEventListener('mouseup', () => { this.onRelease(); }, false);
+
+		this.data = new Uint8Array(1);
+
+		this.pressed = false;
+	}
+
+	onClick() {
+		this.pressed = true;
+
+		this.data[0] = 1;
+		this.ma.sendAll();
+	}
+
+	onRelease() {
+		this.pressed = false;
+
+		this.data[0] = 0;
+	}
+}
+
+class Toggle extends Input {
+	constructor(ma, id, index, size) {
+		super(ma, id, index, size);
+
+		this.source = "<ma-toggle> ✓ </ma-toggle>";
+
+		let div = document.createElement('div');
+		div.innerHTML = this.source.trim();
+
+		this.base = this.ma.root_elem.insertAdjacentElement('beforeend', div.firstChild);
+
+		this.base.addEventListener('touchstart', () => { this.onClick(); }, false);
+		this.base.addEventListener('mousedown', () => { this.onClick(); }, false);
+
+		this.data = new Uint8Array(1);
+
+		this.value = false;
+	}
+
+	onClick() {
+		this.value = !this.value;
+
+		// javascript can't convert booleans to integers because it is a very picturesque language
+		this.data[0] = this.value ? 1 : 0;
+		this.ma.sendAll();
+	}
+}
+
 class Text extends Input {
 	constructor(ma, id, index, size) {
 		super(ma, id, index, size);

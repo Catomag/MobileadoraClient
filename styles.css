@@ -1,8 +1,32 @@
 :root {
-	--highlight: #5fc75d;
-	--medium: #36868f;
-	--dark: #203671;
-	--background: #0f052d;
+	/* I've taken the trouble of sourcing a few different colour shemes for your pleasure */
+
+	/* inkpink palette: */
+	/*
+	--text: #ffffff;
+	--highlight: #fe6c90;
+	--medium: #d03791;
+	--dark: #87286a;
+	--background: #260d34;
+	*/
+
+	/* molten palette:  */
+	/*
+	--text: #ffffff;
+	--highlight: #a02f40;
+	--medium: #5f2f45;
+	--dark: #382d43;
+	--background: #261b2e;
+	*/
+
+	/* twilight 5 palette:   */
+	--text: #fbf5ef;
+	--highlight: #fd724e;
+	--medium: #292831;
+	--dark: #333f58;
+	--background: #292831;
+
+	--padding: 100px;
 }
 
 html {
@@ -17,28 +41,34 @@ html {
 
 body {
 	color: white;
-	font-size: 14pt;
-	padding-left: 50px;
-	padding-right: 50px;
+	font-size: 1.5em;
+	padding-left: 10px;
+	padding-right: 10px;
 	padding-bottom: 20px;
+	padding-top: 10px;
 }
 
 ma-frame {
-	background-color: white;
+	background-color: var(--dark);
 	display: flex;
 	flex-wrap: wrap;
+
 	justify-content: space-between;
-	align-items: space-between;
+	align-items: center;
+
+	min-width: 250px;
 	width: 98%;
 	padding: 1%;
 }
 
 ma-text {
 	min-width: 200px;
+	width: 98%;
 	font-size: 15pt;
 	border-style: solid;
 	border-radius: 5px;
 	color: black;
+	background-color: white;
 
 	padding-left: 1pt;
 	padding-right: 1pt;
@@ -70,7 +100,7 @@ ma-joystick {
 	width: 140px;
 	height: 140px;
 	display: inline-block;
-	background-color: var(--dark);
+	background-color: var(--medium);
 	border-radius: 600px;
 	touch-action: manipulation;
 }
@@ -104,8 +134,6 @@ ma-button {
 	text-align: center;
 	line-height: 100px;
 
-	align-self: flex-end;
-
 	margin: 10px;
 
 	touch-action: manipulation;
@@ -118,7 +146,8 @@ ma-button:active {
 ma-button-submit {
 	background-color: var(--highlight);
 	display: inline-block;
-	padding: 10px;
+	padding: 30px;
+	font-style: bold;
 	font-size: 30pt;
 	border-radius: 10px;
 
@@ -138,4 +167,6 @@ ma-button-submit:active {
 ma-color {
 	width: 100px;
 	height: 100px;
+	border-radius: 100px;
+	margin: 20px;
 }

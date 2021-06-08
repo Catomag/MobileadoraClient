@@ -100,7 +100,6 @@ class MobileadoraClient {
 
 			switch(this.input_dictionary[type]) {
 				// TODO: add missing ones
-				// TODO: take the "size variable into account
 				case "text":
 					input = new Text(this, type, count, size);
 					break;
@@ -108,8 +107,11 @@ class MobileadoraClient {
 					input = new Button(this, type, count, size, alphabet[count % 25]);
 					break;
 				case "submit":
+					input = new SubmitButton(this, type, count, size, "Submit");
 					break;
 				case "toggle":
+					console.log("this ran");
+					input = new Toggle(this, type, count, size);
 					break;
 				case "joystick":
 					input = new Joystick(this, type, count, size);
@@ -183,6 +185,18 @@ class MobileadoraClient {
 			this.input_counts[i] = 0;
 	}
 
+	sendAll() {
+		// input can only be sent if ma is dynamic, so dynamic is set to true all the info is sent and then it is quickly turned off
+		let dynamic = this.dynamic;
+		this.dynamic = true;
+
+		for(let i = 0; i < this.inputs.length; i++) {
+			this.inputs[i].send();
+		}
+
+		this.dynamic = dynamic;
+	}
+
 	connect(ip_address) {
 		if(this.connected) {
 			this.ws.close();
@@ -243,16 +257,7 @@ class MobileadoraClient {
 			else if(message_type == 1) {
 				console.log("received fetch request");
 
-				// DO NOT REMOVE
-				// input can only be sent if ma is dynamic, so dynamic is set to true all the info is sent and then it is quickly turned off
-				let dynamic = this.dynamic;
-				this.dynamic = true;
-
-				for(let i = 0; i < this.inputs.length; i++) {
-					this.inputs[i].send();
-				}
-
-				this.dynamic = dynamic;
+				this.sendAll();
 			}
 		};
 	}
