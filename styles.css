@@ -26,7 +26,13 @@
 	--dark: #333f58;
 	--background: #292831;
 
-	--padding: 100px;
+	--text: #fbf5ef;
+	--highlight: #ffce96;
+	--medium: #ff7777;
+	--dark: #333f58;
+	--background: #00303b;
+
+	--margin: 100px;
 }
 
 html {
@@ -48,6 +54,11 @@ body {
 	padding-top: 10px;
 }
 
+p, h1, h2, h3 {
+	word-break: break-all;
+}
+
+
 ma-frame {
 	background-color: var(--dark);
 	display: flex;
@@ -61,6 +72,10 @@ ma-frame {
 	padding: 1%;
 }
 
+.ma-item {
+	margin: 20px;
+}
+
 ma-text {
 	min-width: 200px;
 	width: 98%;
@@ -69,6 +84,7 @@ ma-text {
 	border-radius: 5px;
 	color: black;
 	background-color: white;
+	word-break: break-all;
 
 	padding-left: 1pt;
 	padding-right: 1pt;
@@ -139,8 +155,36 @@ ma-button {
 	touch-action: manipulation;
 }
 
-ma-button:active {
+ma-button.active {
 	background-color: var(--medium);
+}
+
+ma-toggle {
+	width: 75px;
+	height: 75px;
+	border-radius: 10px;
+
+	font-weight: bold;
+	float: right;
+
+	background-color: var(--highlight);
+	color: var(--highlight);
+	font-style: bold;
+	font-size: 28pt;
+	text-align: center;
+	line-height: 75px;
+
+	margin: 10px;
+	border: 2px;
+	border-style: solid;
+	border-color: black;
+
+	touch-action: manipulation;
+}
+
+ma-toggle.active {
+	background-color: var(--medium);
+	color: white;
 }
 
 ma-button-submit {
@@ -169,4 +213,18 @@ ma-color {
 	height: 100px;
 	border-radius: 100px;
 	margin: 20px;
+}
+
+ma-spacer {
+	width: 100px;
+	height: 100px;
+	margin: 20px;
+	background-color: rgba(0, 0, 0, 0);
+}
+
+ma-br {
+	width: 100%;
+	height: 0px;
+	margin: 0px;
+	display: inline-block;
 }

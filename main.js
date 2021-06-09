@@ -26,12 +26,12 @@ class MobileadoraClient {
 		this.element_dictionary = [
 			"text",
 			"break",
-			"line",
+			"spacer",
 			"h1",
 			"h2",
 			"h3",
+			"line",
 			"color",
-			"image",
 		];
 
 		this.input_counts = new Uint8Array(this.input_dictionary.length);
@@ -46,11 +46,15 @@ class MobileadoraClient {
 		let div = document.createElement('div');
 		div.innerHTML = source.trim();
 
-		this.root_elem.insertAdjacentElement('beforeend', div.firstChild);
-	}	
+		let elem = this.root_elem.insertAdjacentElement('beforeend', div.firstChild);
+
+		elem.classList.add("ma-item");
+
+		return elem;
+	}
 
 	// uses data from frame to create all inputs, adjust viewport and 
-	frameLoad(data) {
+	async frameLoad(data) {
 		console.log(data);
 		// first byte declaring important properties of the frame
 
@@ -70,10 +74,14 @@ class MobileadoraClient {
 	//console.log("input count: " + input_count);
 	//console.log("element count: " + element_count);
 
-		// go input by input and add
+		// go item by item
 		let byte = 3;
-		for(let i = 0; i < input_count; i++) {
-			let type = data[byte];
+		let inputs_added = 0;
+		let elements_added = 0;
+
+		while((inputs_added < input_count || elements_added < element_count) && byte < data.length) {
+			let isInput = !(data[byte] & 0x80) == 0 ? false : true;
+			let type = data[byte] & 0x7f; // ignore most significant bit
 
 			// there is litterally no better way to convert 4 bytes into a 32 byte number in js
 			let size_byte1 = data[byte + 1];
@@ -89,89 +97,121 @@ class MobileadoraClient {
 
 			let count = 0;
 			// increment the input counts
-			if(type > 0 && type < this.input_counts.length) {
-				count = this.input_counts[type];
-				this.input_counts[type] += 1;
-				//console.log(this.input_counts);
+			if(isInput) {
+				if(type > 0 && type < this.input_counts.length) {
+					count = this.input_counts[type];
+					this.input_counts[type] += 1;
+				}
 			}
+			else {
+				if(type > 0 && type < this.element_counts.length) {
+					count = this.element_counts[type];
+					this.element_counts[type] += 1;
+				}
+			}	
 
-			// actually add input
-			let input;
-
-			switch(this.input_dictionary[type]) {
-				// TODO: add missing ones
-				case "text":
-					input = new Text(this, type, count, size);
-					break;
-				case "button":
-					input = new Button(this, type, count, size, alphabet[count % 25]);
-					break;
-				case "submit":
-					input = new SubmitButton(this, type, count, size, "Submit");
-					break;
-				case "toggle":
-					console.log("this ran");
-					input = new Toggle(this, type, count, size);
-					break;
-				case "joystick":
-					input = new Joystick(this, type, count, size);
-					break;
-				case "generic":
-					break;
-
-				default:
-					console.error("invalid type: " + type);
-					break;
-			}
-
-			// using the power of OOP
-			this.inputs.push(input);
-			byte = byte + 5;
-		}
-
-		// go element by element and add
-		for(let i = 0; i < element_count; i++) {
-			let type = data[byte];
-
-			// once again, there is litterally no better way to convert 4 bytes into a 32 byte number in js
-			let size_byte1 = data[byte + 1];
-			let size_byte2 = data[byte + 2];
-			let size_byte3 = data[byte + 3];
-			let size_byte4 = data[byte + 4];
-
-			let size = 0;
-			size |= size_byte4 << 24;
-			size |= size_byte3 << 16;
-			size |= size_byte2 << 8;
-			size |= size_byte1;
-
-			console.log(size);
-
-			// read forward set number of bytes
 			byte = byte + 5;
 
-			let count = 0;
-			// increment the input counts
-			if(type > 0 && type < this.element_counts.length) {
-				count = this.element_counts[type];
-				this.element_counts[type] += 1;
+			// actually add item
+			if(isInput) {
+				let input;
+				console.log("Type: " + this.input_dictionary[type]);
+
+				switch(this.input_dictionary[type]) {
+					// TODO: add missing ones
+					case "text":
+						input = new Text(this, type, count, size);
+						break;
+
+					case "button":
+						input = new Button(this, type, count, size, alphabet[count % 25]);
+						break;
+
+					case "submit":
+						input = new SubmitButton(this, type, count, size, "Submit");
+						break;
+						
+					case "toggle":
+						console.log("this ran");
+						input = new Toggle(this, type, count, size);
+						break;
+
+					case "joystick":
+						input = new Joystick(this, type, count, size);
+						break;
+
+					case "generic":
+						break;
+
+					default:
+						console.error("invalid type: " + type);
+						break;
+				}
+
+				// using the power of OOP
+				this.inputs.push(input);
+				inputs_added = inputs_added + 1;
 			}
+			else {
+				console.log("Element Type: " + this.element_dictionary[type]);
+				console.log("Size: " + size);
 
-			// add elements
+				let string = "";
+				switch(this.element_dictionary[type]) {
+					case "color":
+						this.addElement("<ma-color style='background-color: rgb(" 
+										+ data[byte] + "," + data[byte + 1] + "," + data[byte + 2] + 
+										")'></ma-color>");
+						break;
 
-			console.log(byte);
-			switch(this.element_dictionary[type]) {
-				case "color":
-					this.addElement("<ma-color style='background-color: rgb(" + data[byte] + "," + data[byte + 1] + "," + data[byte + 2] + ")'></ma-color>");
-					break;
+					case "text":
+						string = "";
+						for(let i = 0; i < size; i++)
+							string += String.fromCharCode(data[byte + i]);
 
-				default:
-					console.error("invalid type: " + type);
-					break;
+						this.addElement("<p>" + string + "</p>");
+						break;
+
+					case "break":
+						this.addElement("<ma-br>");
+						break;
+
+					case "spacer":
+						this.addElement("<ma-spacer></ma-spacer>");
+						break;
+
+					case "h1":
+						string = "";
+						for(let i = 0; i < size; i++)
+							string += String.fromCharCode(data[byte + i]);
+
+						this.addElement("<h1>" + string + "</h1>");
+						break;
+
+					case "h2":
+						string = ""; // don't need to redeclare the variable because javascript
+						for(let i = 0; i < size; i++)
+							string += String.fromCharCode(data[byte + i]);
+
+						this.addElement("<h2>" + string + "</h2>");
+						break;
+
+					case "h3":
+						string = "";
+						for(let i = 0; i < size; i++)
+							string += String.fromCharCode(data[byte + i]);
+
+						this.addElement("<h3>" + string + "</h3>");
+						break;
+
+					default:
+						console.error("invalid type: " + type);
+						break;
+				}
+
+				elements_added = elements_added + 1;
+				byte = byte + size;
 			}
-
-			// using the power of OOP
-			byte = byte + size;
 		}
 	}
 

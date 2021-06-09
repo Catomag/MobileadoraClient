@@ -7,7 +7,6 @@ class Input {
 		this.data;
 		this.size = size;
 		this.ma = ma;
-		this.root_elem;
 	}
 
 	send() {
@@ -32,10 +31,7 @@ class Joystick extends Input {
 
 		this.source = "<ma-joystick><ma-joystick-handle></ma-joystick-handle></ma-joystick>";
 
-		let div = document.createElement('div');
-		div.innerHTML = this.source.trim();
-
-		this.base = this.ma.root_elem.insertAdjacentElement('beforeend', div.firstChild);
+		this.base = this.ma.addElement(this.source);
 		this.handle = this.base.firstChild;
 
 		this.w = this.handle.offsetWidth;
@@ -148,10 +144,7 @@ class Button extends Input {
 
 		this.source = "<ma-button>" + char + "</ma-button>";
 
-		let div = document.createElement('div');
-		div.innerHTML = this.source.trim();
-
-		this.base = this.ma.root_elem.insertAdjacentElement('beforeend', div.firstChild);
+		this.base = this.ma.addElement(this.source);
 
 		this.base.addEventListener('touchstart', () => { this.onClick(); }, false);
 		this.base.addEventListener('mousedown', () => { this.onClick(); }, false);
@@ -164,6 +157,7 @@ class Button extends Input {
 	}
 
 	onClick() {
+		this.base.classList.add('active');
 		this.pressed = true;
 
 		this.data[0] = 1;
@@ -171,6 +165,7 @@ class Button extends Input {
 	}
 
 	onRelease() {
+		this.base.classList.remove('active');
 		this.pressed = false;
 
 		this.data[0] = 0;
@@ -184,10 +179,7 @@ class SubmitButton extends Input {
 
 		this.source = "<ma-button-submit>" + text + "</ma-button-submit>";
 
-		let div = document.createElement('div');
-		div.innerHTML = this.source.trim();
-
-		this.base = this.ma.root_elem.insertAdjacentElement('beforeend', div.firstChild);
+		this.base = this.ma.addElement(this.source);
 
 		this.base.addEventListener('touchstart', () => { this.onClick(); }, false);
 		this.base.addEventListener('mousedown', () => { this.onClick(); }, false);
@@ -200,6 +192,7 @@ class SubmitButton extends Input {
 	}
 
 	onClick() {
+		this.base.classList.add('active');
 		this.pressed = true;
 
 		this.data[0] = 1;
@@ -207,6 +200,7 @@ class SubmitButton extends Input {
 	}
 
 	onRelease() {
+		this.base.classList.remove('active');
 		this.pressed = false;
 
 		this.data[0] = 0;
@@ -217,12 +211,9 @@ class Toggle extends Input {
 	constructor(ma, id, index, size) {
 		super(ma, id, index, size);
 
-		this.source = "<ma-toggle> ✓ </ma-toggle>";
+		this.source = "<ma-toggle>" + '✓' + "</ma-toggle>";
 
-		let div = document.createElement('div');
-		div.innerHTML = this.source.trim();
-
-		this.base = this.ma.root_elem.insertAdjacentElement('beforeend', div.firstChild);
+		this.base = this.ma.addElement(this.source);
 
 		this.base.addEventListener('touchstart', () => { this.onClick(); }, false);
 		this.base.addEventListener('mousedown', () => { this.onClick(); }, false);
@@ -235,9 +226,14 @@ class Toggle extends Input {
 	onClick() {
 		this.value = !this.value;
 
+		if(this.value)
+			this.base.classList.add('active');
+		else
+			this.base.classList.remove('active');
+
 		// javascript can't convert booleans to integers because it is a very picturesque language
 		this.data[0] = this.value ? 1 : 0;
-		this.ma.sendAll();
+		this.send();
 	}
 }
 
@@ -247,10 +243,7 @@ class Text extends Input {
 
 		this.source = "<ma-text><span contenteditable='true'></span></ma-text>";
 
-		let div = document.createElement('div');
-		div.innerHTML = this.source.trim();
-
-		this.base = this.ma.root_elem.insertAdjacentElement('beforeend', div.firstChild);
+		this.base = this.ma.addElement(this.source);
 		this.text_elem = this.base.firstChild;
 
 		this.text_elem.addEventListener('input', (e) => { this.onInput(e); }, false);
