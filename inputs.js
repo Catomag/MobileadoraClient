@@ -31,10 +31,7 @@ class Joystick extends Input {
 
 		this.source = "<ma-joystick><ma-joystick-handle></ma-joystick-handle></ma-joystick>";
 
-		let div = document.createElement('div');
-		div.innerHTML = this.source.trim();
-
-		this.base = this.ma.root_elem.insertAdjacentElement('beforeend', div.firstChild);
+		this.base = this.ma.addElement(this.source);
 		this.handle = this.base.firstChild;
 
 		this.w = this.handle.offsetWidth;
@@ -147,10 +144,7 @@ class Button extends Input {
 
 		this.source = "<ma-button>" + char + "</ma-button>";
 
-		let div = document.createElement('div');
-		div.innerHTML = this.source.trim();
-
-		this.base = this.ma.root_elem.insertAdjacentElement('beforeend', div.firstChild);
+		this.base = this.ma.addElement(this.source);
 
 		this.base.addEventListener('touchstart', () => { this.onClick(); }, false);
 		this.base.addEventListener('mousedown', () => { this.onClick(); }, false);
@@ -163,6 +157,7 @@ class Button extends Input {
 	}
 
 	onClick() {
+		this.base.classList.add('active');
 		this.pressed = true;
 
 		this.data[0] = 1;
@@ -170,9 +165,74 @@ class Button extends Input {
 	}
 
 	onRelease() {
+		this.base.classList.remove('active');
 		this.pressed = false;
 
 		this.data[0] = 0;
+		this.send();
+	}
+}
+
+class SubmitButton extends Input {
+	constructor(ma, id, index, size, text) {
+		super(ma, id, index, size);
+
+		this.source = "<ma-button-submit>" + text + "</ma-button-submit>";
+
+		this.base = this.ma.addElement(this.source);
+
+		this.base.addEventListener('touchstart', () => { this.onClick(); }, false);
+		this.base.addEventListener('mousedown', () => { this.onClick(); }, false);
+		this.base.addEventListener('touchend', () => { this.onRelease(); }, false);
+		this.base.addEventListener('mouseup', () => { this.onRelease(); }, false);
+
+		this.data = new Uint8Array(1);
+
+		this.pressed = false;
+	}
+
+	onClick() {
+		this.base.classList.add('active');
+		this.pressed = true;
+
+		this.data[0] = 1;
+		this.ma.sendAll();
+	}
+
+	onRelease() {
+		this.base.classList.remove('active');
+		this.pressed = false;
+
+		this.data[0] = 0;
+	}
+}
+
+class Toggle extends Input {
+	constructor(ma, id, index, size) {
+		super(ma, id, index, size);
+
+		this.source = "<ma-toggle>" + '✓' + "</ma-toggle>";
+
+		this.base = this.ma.addElement(this.source);
+
+		this.base.addEventListener('touchstart', () => { this.onClick(); }, false);
+		this.base.addEventListener('mousedown', () => { this.onClick(); }, false);
+
+		this.data = new Uint8Array(1);
+
+		this.value = false;
+	}
+
+	onClick() {
+		this.value = !this.value;
+
+		if(this.value)
+			this.base.classList.add('active');
+		else
+			this.base.classList.remove('active');
+
+		// javascript can't convert booleans to integers because it is a very picturesque language
+		this.data[0] = this.value ? 1 : 0;
 		this.send();
 	}
 }
@@ -181,15 +241,14 @@ class Text extends Input {
 	constructor(ma, id, index, size) {
 		super(ma, id, index, size);
 
-		this.source = "<ma-text contenteditable='true'></ma-text>";
+		this.source = "<ma-text><span contenteditable='true'></span></ma-text>";
 
-		let div = document.createElement('div');
-		div.innerHTML = this.source.trim();
+		this.base = this.ma.addElement(this.source);
+		this.text_elem = this.base.firstChild;
 
-		this.base = this.ma.root_elem.insertAdjacentElement('beforeend', div.firstChild);
-
-		this.base.addEventListener('input', (e) => { this.onPressed(e); }, false);
-		this.base.addEventListener('keyup', (e) => { this.onRelease(e); }, false);
+		this.text_elem.addEventListener('input', (e) => { this.onInput(e); }, false);
+		this.text_elem.addEventListener('keydown', (e) => { this.onKeyPressed(e); }, false);
+		this.text_elem.addEventListener('keyup', (e) => { this.onRelease(e); }, false);
 
 		this.data = new Uint8Array(size);
 		this.current = 0;
@@ -222,20 +281,18 @@ class Text extends Input {
 		}
 	}
 
-	onPressed(e) {
-		let str = this.base.innerHTML.slice();
+	onInput(e) {
+		let str = this.text_elem.innerText.slice();
 
-		str = str.replace(/&nbsp;/g, ' '); // get rid of &nbsp; (a dumb thing i shouldn't need to be doing
-		console.log(str);
+		str = str.replaceAll('\u00a0', ' '); // get rid of &nbsp; (a dumb thing i shouldn't need to be doing)
 		if(e.isComposing)
 			str += e.key;
+
 		console.log(str);
 
-		if(str.length > this.text_size) {
-			e.preventDefault();
-		}
-		else {
-			let last = 0
+		if(str.length <= this.text_size) {
+			let last = -1; // if length is 0, then terminating character is at index 0 
+
 			for(var i = 0; i < this.size && i < str.length; i++) {
 				this.data[i] = str[i].charCodeAt(0);
 
@@ -243,13 +300,22 @@ class Text extends Input {
 			}
 
 			this.data[last + 1] = 0; // terminating characer
-
-			console.log(this.data);
-
 			this.send();
 		}
 	}
 
+	onKeyPressed(e) {
+		let str = this.text_elem.innerText.slice();
+
+		if(str.length >= this.text_size && this.isKeyCharacter(e.keyCode)) {
+			e.preventDefault();
+		}
+	}
+
 	onRelease(e) {
+		let str = this.base.innerHTML.slice();
+		if(str.length >= this.text_size) {
+			e.preventDefault();
+		}
 	}
 }
