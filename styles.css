@@ -45,6 +45,9 @@ ma-text {
 
 	display: flex;
 	margin: auto 0;
+
+    -webkit-user-select: text;
+	user-select: text;
 }
 
 ma-text:focus {
