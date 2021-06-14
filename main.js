@@ -216,13 +216,19 @@ class MobileadoraClient {
 	}
 
 	frameRemove() {
-		let root = document.getElementsByTagName('ma-frame')[0];
+		let root = this.root_elem;
 
 		while(root.lastChild)
 			root.removeChild(root.lastChild);
 
 		for(var i = 0; i < this.input_counts.length; i++)
 			this.input_counts[i] = 0;
+
+		for(var i = 0; i < this.element_counts.length; i++)
+			this.element_counts[i] = 0;
+
+		// clear the inputs array
+		this.inputs = [];
 	}
 
 	sendAll() {
