@@ -91,6 +91,8 @@ ma-text {
 	padding-right: 1pt;
 	margin: auto 0;
 
+    -webkit-user-select: text;
+	user-select: text;
 	display: flex;
 	flex-direction: column;
 }
