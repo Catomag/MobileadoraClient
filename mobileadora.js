@@ -1,5 +1,308 @@
+"use strict";
+
+let alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+
+class MobileadoraClient {
+	constructor() {
+		this.dynamic;
+		this.vertical;
+		this.scrollable;
+		this.resizeable;
+		this.ws;
+		this.connected;
+		this.root_elem = document.getElementsByTagName('ma-frame')[0];
+
+		this.inputs = [];
+
+		this.input_dictionary = [
+			"text",
+			"button",
+			"submit",
+			"toggle",
+			"joystick",
+			"generic",
+		];
+
+		this.element_dictionary = [
+			"text",
+			"break",
+			"spacer",
+			"h1",
+			"h2",
+			"h3",
+			"line",
+			"color",
+		];
+
+		this.input_counts = new Uint8Array(this.input_dictionary.length);
+		this.element_counts = new Uint8Array(this.element_dictionary.length);
+	}
+
+	setRoot(element) {
+		if(element.nodeType && element !== "undefined") {
+			this.root_elem = element;
+		}
+		else
+			console.error("attempted to set a non element as root element");
+	}
+
+	inputCount() {
+		return this.inputs.length;
+	}
+
+	addElement(source) {
+		let div = document.createElement('div');
+		div.innerHTML = source.trim();
+
+		let elem = this.root_elem.insertAdjacentElement('beforeend', div.firstChild);
+
+		elem.classList.add("ma-item");
+
+		return elem;
+	}
+
+	// uses data from frame to create all inputs, adjust viewport and 
+	async frameLoad(data) {
+		console.log(data);
+		// first byte declaring important properties of the frame
+
+		this.dynamic	= ((data[0] >> 3) & 1) > 0 ? true : false;
+		this.vertical	= ((data[0] >> 2) & 1) > 0 ? true : false;
+		this.scrollable	= ((data[0] >> 1) & 1) > 0 ? true : false;
+		this.resizeable	= ((data[0] >> 0) & 1) > 0 ? true : false;
+
+		let input_count = data[1];
+		let element_count = data[2];
+
+		// go item by item
+		let byte = 3;
+		let inputs_added = 0;
+		let elements_added = 0;
+
+		while((inputs_added < input_count || elements_added < element_count) && byte < data.length) {
+			let isInput = !(data[byte] & 0x80) == 0 ? false : true;
+			let type = data[byte] & 0x7f; // ignore most significant bit
+
+			// there is litterally no better way to convert 4 bytes into a 32 byte number in js
+			let size_byte1 = data[byte + 1];
+			let size_byte2 = data[byte + 2];
+			let size_byte3 = data[byte + 3];
+			let size_byte4 = data[byte + 4];
+
+			let size = 0;
+			size |= size_byte4 << 24;
+			size |= size_byte3 << 16;
+			size |= size_byte2 << 8;
+			size |= size_byte1;
+
+			let count = 0;
+			// increment the input counts
+			if(isInput) {
+				if(type > 0 && type < this.input_counts.length) {
+					count = this.input_counts[type];
+					this.input_counts[type] += 1;
+				}
+			}
+			else {
+				if(type > 0 && type < this.element_counts.length) {
+					count = this.element_counts[type];
+					this.element_counts[type] += 1;
+				}
+			}	
+
+			byte = byte + 5;
+
+			// actually add item
+			if(isInput) {
+				let input;
+
+				switch(this.input_dictionary[type]) {
+					case "text":
+						input = new Text(this, type, count, size);
+						break;
+
+					case "button":
+						input = new Button(this, type, count, size, alphabet[count % 25]);
+						break;
+
+					case "submit":
+						input = new SubmitButton(this, type, count, size, "Submit");
+						break;
+						
+					case "toggle":
+						input = new Toggle(this, type, count, size);
+						break;
+
+					case "joystick":
+						input = new Joystick(this, type, count, size);
+						break;
+
+					case "generic":
+						break;
+
+					default:
+						console.error("invalid type: " + type);
+						break;
+				}
+
+				// using the power of OOP
+				this.inputs.push(input);
+				inputs_added = inputs_added + 1;
+			}
+			else {
+				let string = "";
+				switch(this.element_dictionary[type]) {
+					case "color":
+						this.addElement("<ma-color style='background-color: rgb(" 
+										+ data[byte] + "," + data[byte + 1] + "," + data[byte + 2] + 
+										")'></ma-color>");
+						break;
+
+					case "text":
+						string = "";
+						for(let i = 0; i < size; i++)
+							string += String.fromCharCode(data[byte + i]);
+
+						this.addElement("<p>" + string + "</p>");
+						break;
+
+					case "break":
+						this.addElement("<ma-br>");
+						break;
+
+					case "spacer":
+						this.addElement("<ma-spacer></ma-spacer>");
+						break;
+
+					case "h1":
+						string = "";
+						for(let i = 0; i < size; i++)
+							string += String.fromCharCode(data[byte + i]);
+
+						this.addElement("<h1>" + string + "</h1>");
+						break;
+
+					case "h2":
+						string = ""; // don't need to redeclare the variable because javascript
+						for(let i = 0; i < size; i++)
+							string += String.fromCharCode(data[byte + i]);
+
+						this.addElement("<h2>" + string + "</h2>");
+						break;
+
+					case "h3":
+						string = "";
+						for(let i = 0; i < size; i++)
+							string += String.fromCharCode(data[byte + i]);
+
+						this.addElement("<h3>" + string + "</h3>");
+						break;
+
+					default:
+						console.error("invalid type: " + type);
+						break;
+				}
+
+				elements_added = elements_added + 1;
+				byte = byte + size;
+			}
+		}
+	}
+
+	frameRemove() {
+		let root = this.root_elem;
+
+		while(root.lastChild)
+			root.removeChild(root.lastChild);
+
+		for(var i = 0; i < this.input_counts.length; i++)
+			this.input_counts[i] = 0;
+
+		for(var i = 0; i < this.element_counts.length; i++)
+			this.element_counts[i] = 0;
+
+		// clear the inputs array
+		this.inputs = [];
+	}
+
+	sendAll() {
+		// input can only be sent if ma is dynamic, so dynamic is set to true all the info is sent and then it is quickly turned off
+		let dynamic = this.dynamic;
+		this.dynamic = true;
+
+		for(let i = 0; i < this.inputs.length; i++) {
+			this.inputs[i].send();
+		}
+
+		this.dynamic = dynamic;
+	}
+
+	connect(ip_address) {
+		if(this.connected) {
+			this.ws.close();
+		}
+		this.ws = new WebSocket('ws://' + ip_address);
+
+		// As soon as server connects
+		this.ws.onopen = () => {
+			console.log('Connected to server!');
+			this.connected = true;
+		};
+
+		this.ws.onclose = () => {
+			console.log('Server closed =(');
+
+			this.connected = false;
+			this.frameRemove();
+		};
+
+		this.ws.onmessage = async (evt) => {
+			evt.data;
+
+			let i_love_async_functions = (blobs_were_a_masterful_invention) => {
+				return new Promise((resolve, reject) => {
+					let stupid_js_bs = new FileReader(); // intrinsic documentation
+					stupid_js_bs.onload = function are_you_fucking_serious_right_now() {
+						resolve(stupid_js_bs.result);
+					};
+
+					stupid_js_bs.onerror = (error) => reject(error);
+
+					stupid_js_bs.readAsArrayBuffer(blobs_were_a_masterful_invention);
+				});
+			};
+
+			let data = new Uint8Array(await i_love_async_functions(evt.data));
+			console.log("the dark times are behind us");
+
+			// read header
+			let message_type = (data[0] >> 4) & 15;
+
+			// if message type is frame
+			if(message_type == 0) {
+				// get rid of current frame before proceeding
+				this.frameRemove();
+
+				console.log("received frame");
+				this.frameLoad(data);
+			}
+
+			// if message is input request, forcefully send all input data at once
+			else if(message_type == 1) {
+				console.log("received fetch request");
+
+				this.sendAll();
+			}
+		};
+	}
+}
+
+
+
+
 // IMPORTANT, THIS MUST MATCH THE SERVER"S DICTOINARY
 
+// Base input class
 class Input {
 	constructor(ma, id, index, size) {
 		this.id = id;
@@ -10,6 +313,7 @@ class Input {
 	}
 
 	send() {
+		// only send message if frame is dynamic and frame is 
 		if(this.ma.connected && this.ma.dynamic) {
 			let header = new Uint8Array(2);
 
@@ -319,3 +623,4 @@ class Text extends Input {
 		}
 	}
 }
+
