@@ -21,10 +21,10 @@
 
 	/* twilight 5 palette:   */
 	--text: #fbf5ef;
-	--highlight: #fd724e;
-	--medium: #292831;
-	--dark: #333f58;
-	--background: #292831;
+	--highlight: #ff0066;
+	--medium: #2b0011;
+	--dark: #004455;
+	--background: #241c1f;
 }
 
 html {
