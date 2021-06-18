@@ -110,6 +110,7 @@ class MobileadoraClient {
 				}
 			}	
 
+			// increment past header
 			byte = byte + 5;
 
 			// actually add item
@@ -508,6 +509,12 @@ class SubmitButton extends Input {
 		this.pressed = false;
 
 		this.data[0] = 0;
+
+		// bit of a hack, but server needs to know whether or not the current frame was submitted and this is the best way to do it
+		let dynamic = this.ma.dynamic;
+		this.ma.dynamic = true;
+		this.send();
+		this.ma.dynamic = dynamic;
 	}
 }
 
