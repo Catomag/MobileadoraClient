@@ -26,5 +26,7 @@ There is an index.html page which provides a simple prototype to get started. It
 - By default the website connects to the server currently on the url with port 8080 added when the green button is pressed
 
 # Adding this amazing library to your webzone
-- fairly standard stuff, what you want to do is add `<script src="https://raw.githubusercontent.com/InspiredGoat/MobileadoraClient/main/mobiladora.js charset="utf-8"></script>"`
+- fairly standard stuff, what you want to do is:
+  - add `<script src="https://raw.githubusercontent.com/InspiredGoat/MobileadoraClient/main/mobiladora.js charset="utf-8"></script>`
+  - add a `<ma-frame>` tag, which is where the library will chose to spawn all the inputs and elements
 - you should also add the styles.css file in this repository as stated above, I found a nice set of values for the dimensons of all the objects
