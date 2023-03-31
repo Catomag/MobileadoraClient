@@ -34,7 +34,7 @@ html {
 	position: fixed;
 	scroll-behavior: none;
 	background-color: var(--background);
-	font-family: 'Roboto', sans-serif;
+	font-family: 'Helvetica', sans-serif;
 }
 
 body {
